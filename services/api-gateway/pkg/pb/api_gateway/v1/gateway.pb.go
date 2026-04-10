@@ -324,12 +324,20 @@ func (x *ExecuteDeviceCommandResponse) GetStatus() string {
 }
 
 type SaveScenarioRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ScenarioId    string                 `protobuf:"bytes,1,opt,name=scenario_id,json=scenarioId,proto3" json:"scenario_id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Enabled       bool                   `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ScenarioId      string                 `protobuf:"bytes,1,opt,name=scenario_id,json=scenarioId,proto3" json:"scenario_id,omitempty"`
+	EdgeId          string                 `protobuf:"bytes,2,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
+	RoomId          string                 `protobuf:"bytes,3,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	Name            string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	VoiceCommand    string                 `protobuf:"bytes,5,opt,name=voice_command,json=voiceCommand,proto3" json:"voice_command,omitempty"`
+	Enabled         bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	OfflineEligible bool                   `protobuf:"varint,7,opt,name=offline_eligible,json=offlineEligible,proto3" json:"offline_eligible,omitempty"`
+	Priority        int32                  `protobuf:"varint,8,opt,name=priority,proto3" json:"priority,omitempty"`
+	DeviceId        string                 `protobuf:"bytes,9,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	EntityId        string                 `protobuf:"bytes,10,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
+	TargetState     string                 `protobuf:"bytes,11,opt,name=target_state,json=targetState,proto3" json:"target_state,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *SaveScenarioRequest) Reset() {
@@ -369,9 +377,30 @@ func (x *SaveScenarioRequest) GetScenarioId() string {
 	return ""
 }
 
+func (x *SaveScenarioRequest) GetEdgeId() string {
+	if x != nil {
+		return x.EdgeId
+	}
+	return ""
+}
+
+func (x *SaveScenarioRequest) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
 func (x *SaveScenarioRequest) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *SaveScenarioRequest) GetVoiceCommand() string {
+	if x != nil {
+		return x.VoiceCommand
 	}
 	return ""
 }
@@ -383,10 +412,46 @@ func (x *SaveScenarioRequest) GetEnabled() bool {
 	return false
 }
 
+func (x *SaveScenarioRequest) GetOfflineEligible() bool {
+	if x != nil {
+		return x.OfflineEligible
+	}
+	return false
+}
+
+func (x *SaveScenarioRequest) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
+func (x *SaveScenarioRequest) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *SaveScenarioRequest) GetEntityId() string {
+	if x != nil {
+		return x.EntityId
+	}
+	return ""
+}
+
+func (x *SaveScenarioRequest) GetTargetState() string {
+	if x != nil {
+		return x.TargetState
+	}
+	return ""
+}
+
 type SaveScenarioResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ScenarioId    string                 `protobuf:"bytes,1,opt,name=scenario_id,json=scenarioId,proto3" json:"scenario_id,omitempty"`
 	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	VoiceCommand  string                 `protobuf:"bytes,3,opt,name=voice_command,json=voiceCommand,proto3" json:"voice_command,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -435,11 +500,19 @@ func (x *SaveScenarioResponse) GetStatus() string {
 	return ""
 }
 
+func (x *SaveScenarioResponse) GetVoiceCommand() string {
+	if x != nil {
+		return x.VoiceCommand
+	}
+	return ""
+}
+
 type ParseVoiceCommandRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Audio         []byte                 `protobuf:"bytes,1,opt,name=audio,proto3" json:"audio,omitempty"`
 	RoomId        string                 `protobuf:"bytes,2,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
 	EdgeId        string                 `protobuf:"bytes,3,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
+	Source        string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -495,13 +568,26 @@ func (x *ParseVoiceCommandRequest) GetEdgeId() string {
 	return ""
 }
 
+func (x *ParseVoiceCommandRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
 type ParseVoiceCommandResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	CommandId     string                 `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
-	Intent        string                 `protobuf:"bytes,2,opt,name=intent,proto3" json:"intent,omitempty"`
-	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	CommandId         string                 `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
+	Intent            string                 `protobuf:"bytes,2,opt,name=intent,proto3" json:"intent,omitempty"`
+	Status            string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	RecognizedCommand string                 `protobuf:"bytes,4,opt,name=recognized_command,json=recognizedCommand,proto3" json:"recognized_command,omitempty"`
+	ScenarioId        string                 `protobuf:"bytes,5,opt,name=scenario_id,json=scenarioId,proto3" json:"scenario_id,omitempty"`
+	ScenarioName      string                 `protobuf:"bytes,6,opt,name=scenario_name,json=scenarioName,proto3" json:"scenario_name,omitempty"`
+	DeviceId          string                 `protobuf:"bytes,7,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	EntityId          string                 `protobuf:"bytes,8,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
+	TargetState       string                 `protobuf:"bytes,9,opt,name=target_state,json=targetState,proto3" json:"target_state,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ParseVoiceCommandResponse) Reset() {
@@ -551,6 +637,48 @@ func (x *ParseVoiceCommandResponse) GetIntent() string {
 func (x *ParseVoiceCommandResponse) GetStatus() string {
 	if x != nil {
 		return x.Status
+	}
+	return ""
+}
+
+func (x *ParseVoiceCommandResponse) GetRecognizedCommand() string {
+	if x != nil {
+		return x.RecognizedCommand
+	}
+	return ""
+}
+
+func (x *ParseVoiceCommandResponse) GetScenarioId() string {
+	if x != nil {
+		return x.ScenarioId
+	}
+	return ""
+}
+
+func (x *ParseVoiceCommandResponse) GetScenarioName() string {
+	if x != nil {
+		return x.ScenarioName
+	}
+	return ""
+}
+
+func (x *ParseVoiceCommandResponse) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *ParseVoiceCommandResponse) GetEntityId() string {
+	if x != nil {
+		return x.EntityId
+	}
+	return ""
+}
+
+func (x *ParseVoiceCommandResponse) GetTargetState() string {
+	if x != nil {
+		return x.TargetState
 	}
 	return ""
 }
@@ -693,25 +821,43 @@ const file_api_gateway_v1_gateway_proto_rawDesc = "" +
 	"\x1cExecuteDeviceCommandResponse\x12\x1d\n" +
 	"\n" +
 	"command_id\x18\x01 \x01(\tR\tcommandId\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\"d\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"\xdf\x02\n" +
 	"\x13SaveScenarioRequest\x12\x1f\n" +
 	"\vscenario_id\x18\x01 \x01(\tR\n" +
-	"scenarioId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
-	"\aenabled\x18\x03 \x01(\bR\aenabled\"O\n" +
+	"scenarioId\x12\x17\n" +
+	"\aedge_id\x18\x02 \x01(\tR\x06edgeId\x12\x17\n" +
+	"\aroom_id\x18\x03 \x01(\tR\x06roomId\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12#\n" +
+	"\rvoice_command\x18\x05 \x01(\tR\fvoiceCommand\x12\x18\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\x12)\n" +
+	"\x10offline_eligible\x18\a \x01(\bR\x0fofflineEligible\x12\x1a\n" +
+	"\bpriority\x18\b \x01(\x05R\bpriority\x12\x1b\n" +
+	"\tdevice_id\x18\t \x01(\tR\bdeviceId\x12\x1b\n" +
+	"\tentity_id\x18\n" +
+	" \x01(\tR\bentityId\x12!\n" +
+	"\ftarget_state\x18\v \x01(\tR\vtargetState\"t\n" +
 	"\x14SaveScenarioResponse\x12\x1f\n" +
 	"\vscenario_id\x18\x01 \x01(\tR\n" +
 	"scenarioId\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\"b\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12#\n" +
+	"\rvoice_command\x18\x03 \x01(\tR\fvoiceCommand\"z\n" +
 	"\x18ParseVoiceCommandRequest\x12\x14\n" +
 	"\x05audio\x18\x01 \x01(\fR\x05audio\x12\x17\n" +
 	"\aroom_id\x18\x02 \x01(\tR\x06roomId\x12\x17\n" +
-	"\aedge_id\x18\x03 \x01(\tR\x06edgeId\"j\n" +
+	"\aedge_id\x18\x03 \x01(\tR\x06edgeId\x12\x16\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\"\xbc\x02\n" +
 	"\x19ParseVoiceCommandResponse\x12\x1d\n" +
 	"\n" +
 	"command_id\x18\x01 \x01(\tR\tcommandId\x12\x16\n" +
 	"\x06intent\x18\x02 \x01(\tR\x06intent\x12\x16\n" +
-	"\x06status\x18\x03 \x01(\tR\x06status\"a\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12-\n" +
+	"\x12recognized_command\x18\x04 \x01(\tR\x11recognizedCommand\x12\x1f\n" +
+	"\vscenario_id\x18\x05 \x01(\tR\n" +
+	"scenarioId\x12#\n" +
+	"\rscenario_name\x18\x06 \x01(\tR\fscenarioName\x12\x1b\n" +
+	"\tdevice_id\x18\a \x01(\tR\bdeviceId\x12\x1b\n" +
+	"\tentity_id\x18\b \x01(\tR\bentityId\x12!\n" +
+	"\ftarget_state\x18\t \x01(\tR\vtargetState\"a\n" +
 	"\x13AnalyzeFrameRequest\x12\x14\n" +
 	"\x05frame\x18\x01 \x01(\fR\x05frame\x12\x1b\n" +
 	"\tcamera_id\x18\x02 \x01(\tR\bcameraId\x12\x17\n" +

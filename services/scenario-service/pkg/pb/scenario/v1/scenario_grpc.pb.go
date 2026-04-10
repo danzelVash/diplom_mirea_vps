@@ -24,6 +24,8 @@ const (
 	ScenarioService_SaveScenario_FullMethodName        = "/scenario.v1.ScenarioService/SaveScenario"
 	ScenarioService_EvaluateEvent_FullMethodName       = "/scenario.v1.ScenarioService/EvaluateEvent"
 	ScenarioService_GetOfflineScenarios_FullMethodName = "/scenario.v1.ScenarioService/GetOfflineScenarios"
+	ScenarioService_ListVoiceCommands_FullMethodName   = "/scenario.v1.ScenarioService/ListVoiceCommands"
+	ScenarioService_ExecuteVoiceCommand_FullMethodName = "/scenario.v1.ScenarioService/ExecuteVoiceCommand"
 )
 
 // ScenarioServiceClient is the client API for ScenarioService service.
@@ -35,6 +37,8 @@ type ScenarioServiceClient interface {
 	SaveScenario(ctx context.Context, in *SaveScenarioRequest, opts ...grpc.CallOption) (*SaveScenarioResponse, error)
 	EvaluateEvent(ctx context.Context, in *EvaluateEventRequest, opts ...grpc.CallOption) (*EvaluateEventResponse, error)
 	GetOfflineScenarios(ctx context.Context, in *GetOfflineScenariosRequest, opts ...grpc.CallOption) (*GetOfflineScenariosResponse, error)
+	ListVoiceCommands(ctx context.Context, in *ListVoiceCommandsRequest, opts ...grpc.CallOption) (*ListVoiceCommandsResponse, error)
+	ExecuteVoiceCommand(ctx context.Context, in *ExecuteVoiceCommandRequest, opts ...grpc.CallOption) (*ExecuteVoiceCommandResponse, error)
 }
 
 type scenarioServiceClient struct {
@@ -95,6 +99,26 @@ func (c *scenarioServiceClient) GetOfflineScenarios(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *scenarioServiceClient) ListVoiceCommands(ctx context.Context, in *ListVoiceCommandsRequest, opts ...grpc.CallOption) (*ListVoiceCommandsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListVoiceCommandsResponse)
+	err := c.cc.Invoke(ctx, ScenarioService_ListVoiceCommands_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scenarioServiceClient) ExecuteVoiceCommand(ctx context.Context, in *ExecuteVoiceCommandRequest, opts ...grpc.CallOption) (*ExecuteVoiceCommandResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExecuteVoiceCommandResponse)
+	err := c.cc.Invoke(ctx, ScenarioService_ExecuteVoiceCommand_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ScenarioServiceServer is the server API for ScenarioService service.
 // All implementations must embed UnimplementedScenarioServiceServer
 // for forward compatibility.
@@ -104,6 +128,8 @@ type ScenarioServiceServer interface {
 	SaveScenario(context.Context, *SaveScenarioRequest) (*SaveScenarioResponse, error)
 	EvaluateEvent(context.Context, *EvaluateEventRequest) (*EvaluateEventResponse, error)
 	GetOfflineScenarios(context.Context, *GetOfflineScenariosRequest) (*GetOfflineScenariosResponse, error)
+	ListVoiceCommands(context.Context, *ListVoiceCommandsRequest) (*ListVoiceCommandsResponse, error)
+	ExecuteVoiceCommand(context.Context, *ExecuteVoiceCommandRequest) (*ExecuteVoiceCommandResponse, error)
 	mustEmbedUnimplementedScenarioServiceServer()
 }
 
@@ -128,6 +154,12 @@ func (UnimplementedScenarioServiceServer) EvaluateEvent(context.Context, *Evalua
 }
 func (UnimplementedScenarioServiceServer) GetOfflineScenarios(context.Context, *GetOfflineScenariosRequest) (*GetOfflineScenariosResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOfflineScenarios not implemented")
+}
+func (UnimplementedScenarioServiceServer) ListVoiceCommands(context.Context, *ListVoiceCommandsRequest) (*ListVoiceCommandsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListVoiceCommands not implemented")
+}
+func (UnimplementedScenarioServiceServer) ExecuteVoiceCommand(context.Context, *ExecuteVoiceCommandRequest) (*ExecuteVoiceCommandResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExecuteVoiceCommand not implemented")
 }
 func (UnimplementedScenarioServiceServer) mustEmbedUnimplementedScenarioServiceServer() {}
 func (UnimplementedScenarioServiceServer) testEmbeddedByValue()                         {}
@@ -240,6 +272,42 @@ func _ScenarioService_GetOfflineScenarios_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ScenarioService_ListVoiceCommands_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListVoiceCommandsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScenarioServiceServer).ListVoiceCommands(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScenarioService_ListVoiceCommands_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScenarioServiceServer).ListVoiceCommands(ctx, req.(*ListVoiceCommandsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScenarioService_ExecuteVoiceCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExecuteVoiceCommandRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScenarioServiceServer).ExecuteVoiceCommand(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScenarioService_ExecuteVoiceCommand_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScenarioServiceServer).ExecuteVoiceCommand(ctx, req.(*ExecuteVoiceCommandRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ScenarioService_ServiceDesc is the grpc.ServiceDesc for ScenarioService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +334,14 @@ var ScenarioService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOfflineScenarios",
 			Handler:    _ScenarioService_GetOfflineScenarios_Handler,
+		},
+		{
+			MethodName: "ListVoiceCommands",
+			Handler:    _ScenarioService_ListVoiceCommands_Handler,
+		},
+		{
+			MethodName: "ExecuteVoiceCommand",
+			Handler:    _ScenarioService_ExecuteVoiceCommand_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

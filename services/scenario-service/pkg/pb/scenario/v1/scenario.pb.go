@@ -28,6 +28,7 @@ type Trigger struct {
 	EventType     string                 `protobuf:"bytes,2,opt,name=event_type,json=eventType,proto3" json:"event_type,omitempty"`
 	EntityId      string                 `protobuf:"bytes,3,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
 	ExpectedState string                 `protobuf:"bytes,4,opt,name=expected_state,json=expectedState,proto3" json:"expected_state,omitempty"`
+	CommandName   string                 `protobuf:"bytes,5,opt,name=command_name,json=commandName,proto3" json:"command_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -86,6 +87,13 @@ func (x *Trigger) GetEntityId() string {
 func (x *Trigger) GetExpectedState() string {
 	if x != nil {
 		return x.ExpectedState
+	}
+	return ""
+}
+
+func (x *Trigger) GetCommandName() string {
+	if x != nil {
+		return x.CommandName
 	}
 	return ""
 }
@@ -427,12 +435,13 @@ func (x *EventEnvelope) GetOccurredAt() *timestamppb.Timestamp {
 }
 
 type Decision struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DecisionId    string                 `protobuf:"bytes,1,opt,name=decision_id,json=decisionId,proto3" json:"decision_id,omitempty"`
-	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
-	Actions       []*Action              `protobuf:"bytes,3,rep,name=actions,proto3" json:"actions,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	DecisionId         string                 `protobuf:"bytes,1,opt,name=decision_id,json=decisionId,proto3" json:"decision_id,omitempty"`
+	Status             string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	Actions            []*Action              `protobuf:"bytes,3,rep,name=actions,proto3" json:"actions,omitempty"`
+	MatchedScenarioIds []string               `protobuf:"bytes,4,rep,name=matched_scenario_ids,json=matchedScenarioIds,proto3" json:"matched_scenario_ids,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Decision) Reset() {
@@ -486,6 +495,121 @@ func (x *Decision) GetActions() []*Action {
 	return nil
 }
 
+func (x *Decision) GetMatchedScenarioIds() []string {
+	if x != nil {
+		return x.MatchedScenarioIds
+	}
+	return nil
+}
+
+type VoiceCommand struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ScenarioId    string                 `protobuf:"bytes,1,opt,name=scenario_id,json=scenarioId,proto3" json:"scenario_id,omitempty"`
+	ScenarioName  string                 `protobuf:"bytes,2,opt,name=scenario_name,json=scenarioName,proto3" json:"scenario_name,omitempty"`
+	EdgeId        string                 `protobuf:"bytes,3,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
+	RoomId        string                 `protobuf:"bytes,4,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	CommandName   string                 `protobuf:"bytes,5,opt,name=command_name,json=commandName,proto3" json:"command_name,omitempty"`
+	DeviceId      string                 `protobuf:"bytes,6,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	EntityId      string                 `protobuf:"bytes,7,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
+	TargetState   string                 `protobuf:"bytes,8,opt,name=target_state,json=targetState,proto3" json:"target_state,omitempty"`
+	Priority      int32                  `protobuf:"varint,9,opt,name=priority,proto3" json:"priority,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VoiceCommand) Reset() {
+	*x = VoiceCommand{}
+	mi := &file_scenario_v1_scenario_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VoiceCommand) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VoiceCommand) ProtoMessage() {}
+
+func (x *VoiceCommand) ProtoReflect() protoreflect.Message {
+	mi := &file_scenario_v1_scenario_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VoiceCommand.ProtoReflect.Descriptor instead.
+func (*VoiceCommand) Descriptor() ([]byte, []int) {
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *VoiceCommand) GetScenarioId() string {
+	if x != nil {
+		return x.ScenarioId
+	}
+	return ""
+}
+
+func (x *VoiceCommand) GetScenarioName() string {
+	if x != nil {
+		return x.ScenarioName
+	}
+	return ""
+}
+
+func (x *VoiceCommand) GetEdgeId() string {
+	if x != nil {
+		return x.EdgeId
+	}
+	return ""
+}
+
+func (x *VoiceCommand) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *VoiceCommand) GetCommandName() string {
+	if x != nil {
+		return x.CommandName
+	}
+	return ""
+}
+
+func (x *VoiceCommand) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *VoiceCommand) GetEntityId() string {
+	if x != nil {
+		return x.EntityId
+	}
+	return ""
+}
+
+func (x *VoiceCommand) GetTargetState() string {
+	if x != nil {
+		return x.TargetState
+	}
+	return ""
+}
+
+func (x *VoiceCommand) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
 type ListScenariosRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	EdgeId        string                 `protobuf:"bytes,1,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
@@ -495,7 +619,7 @@ type ListScenariosRequest struct {
 
 func (x *ListScenariosRequest) Reset() {
 	*x = ListScenariosRequest{}
-	mi := &file_scenario_v1_scenario_proto_msgTypes[6]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -507,7 +631,7 @@ func (x *ListScenariosRequest) String() string {
 func (*ListScenariosRequest) ProtoMessage() {}
 
 func (x *ListScenariosRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_scenario_v1_scenario_proto_msgTypes[6]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -520,7 +644,7 @@ func (x *ListScenariosRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListScenariosRequest.ProtoReflect.Descriptor instead.
 func (*ListScenariosRequest) Descriptor() ([]byte, []int) {
-	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{6}
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListScenariosRequest) GetEdgeId() string {
@@ -539,7 +663,7 @@ type ListScenariosResponse struct {
 
 func (x *ListScenariosResponse) Reset() {
 	*x = ListScenariosResponse{}
-	mi := &file_scenario_v1_scenario_proto_msgTypes[7]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -551,7 +675,7 @@ func (x *ListScenariosResponse) String() string {
 func (*ListScenariosResponse) ProtoMessage() {}
 
 func (x *ListScenariosResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_scenario_v1_scenario_proto_msgTypes[7]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -564,7 +688,7 @@ func (x *ListScenariosResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListScenariosResponse.ProtoReflect.Descriptor instead.
 func (*ListScenariosResponse) Descriptor() ([]byte, []int) {
-	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{7}
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListScenariosResponse) GetScenarios() []*Scenario {
@@ -583,7 +707,7 @@ type GetScenarioRequest struct {
 
 func (x *GetScenarioRequest) Reset() {
 	*x = GetScenarioRequest{}
-	mi := &file_scenario_v1_scenario_proto_msgTypes[8]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -595,7 +719,7 @@ func (x *GetScenarioRequest) String() string {
 func (*GetScenarioRequest) ProtoMessage() {}
 
 func (x *GetScenarioRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_scenario_v1_scenario_proto_msgTypes[8]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -608,7 +732,7 @@ func (x *GetScenarioRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetScenarioRequest.ProtoReflect.Descriptor instead.
 func (*GetScenarioRequest) Descriptor() ([]byte, []int) {
-	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{8}
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetScenarioRequest) GetScenarioId() string {
@@ -627,7 +751,7 @@ type GetScenarioResponse struct {
 
 func (x *GetScenarioResponse) Reset() {
 	*x = GetScenarioResponse{}
-	mi := &file_scenario_v1_scenario_proto_msgTypes[9]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -639,7 +763,7 @@ func (x *GetScenarioResponse) String() string {
 func (*GetScenarioResponse) ProtoMessage() {}
 
 func (x *GetScenarioResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_scenario_v1_scenario_proto_msgTypes[9]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -652,7 +776,7 @@ func (x *GetScenarioResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetScenarioResponse.ProtoReflect.Descriptor instead.
 func (*GetScenarioResponse) Descriptor() ([]byte, []int) {
-	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{9}
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetScenarioResponse) GetScenario() *Scenario {
@@ -671,7 +795,7 @@ type SaveScenarioRequest struct {
 
 func (x *SaveScenarioRequest) Reset() {
 	*x = SaveScenarioRequest{}
-	mi := &file_scenario_v1_scenario_proto_msgTypes[10]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -683,7 +807,7 @@ func (x *SaveScenarioRequest) String() string {
 func (*SaveScenarioRequest) ProtoMessage() {}
 
 func (x *SaveScenarioRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_scenario_v1_scenario_proto_msgTypes[10]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -696,7 +820,7 @@ func (x *SaveScenarioRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveScenarioRequest.ProtoReflect.Descriptor instead.
 func (*SaveScenarioRequest) Descriptor() ([]byte, []int) {
-	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{10}
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SaveScenarioRequest) GetScenario() *Scenario {
@@ -715,7 +839,7 @@ type SaveScenarioResponse struct {
 
 func (x *SaveScenarioResponse) Reset() {
 	*x = SaveScenarioResponse{}
-	mi := &file_scenario_v1_scenario_proto_msgTypes[11]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -727,7 +851,7 @@ func (x *SaveScenarioResponse) String() string {
 func (*SaveScenarioResponse) ProtoMessage() {}
 
 func (x *SaveScenarioResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_scenario_v1_scenario_proto_msgTypes[11]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -740,7 +864,7 @@ func (x *SaveScenarioResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveScenarioResponse.ProtoReflect.Descriptor instead.
 func (*SaveScenarioResponse) Descriptor() ([]byte, []int) {
-	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{11}
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SaveScenarioResponse) GetScenario() *Scenario {
@@ -759,7 +883,7 @@ type EvaluateEventRequest struct {
 
 func (x *EvaluateEventRequest) Reset() {
 	*x = EvaluateEventRequest{}
-	mi := &file_scenario_v1_scenario_proto_msgTypes[12]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -771,7 +895,7 @@ func (x *EvaluateEventRequest) String() string {
 func (*EvaluateEventRequest) ProtoMessage() {}
 
 func (x *EvaluateEventRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_scenario_v1_scenario_proto_msgTypes[12]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -784,7 +908,7 @@ func (x *EvaluateEventRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluateEventRequest.ProtoReflect.Descriptor instead.
 func (*EvaluateEventRequest) Descriptor() ([]byte, []int) {
-	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{12}
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *EvaluateEventRequest) GetEvent() *EventEnvelope {
@@ -803,7 +927,7 @@ type EvaluateEventResponse struct {
 
 func (x *EvaluateEventResponse) Reset() {
 	*x = EvaluateEventResponse{}
-	mi := &file_scenario_v1_scenario_proto_msgTypes[13]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -815,7 +939,7 @@ func (x *EvaluateEventResponse) String() string {
 func (*EvaluateEventResponse) ProtoMessage() {}
 
 func (x *EvaluateEventResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_scenario_v1_scenario_proto_msgTypes[13]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -828,7 +952,7 @@ func (x *EvaluateEventResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluateEventResponse.ProtoReflect.Descriptor instead.
 func (*EvaluateEventResponse) Descriptor() ([]byte, []int) {
-	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{13}
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *EvaluateEventResponse) GetDecision() *Decision {
@@ -847,7 +971,7 @@ type GetOfflineScenariosRequest struct {
 
 func (x *GetOfflineScenariosRequest) Reset() {
 	*x = GetOfflineScenariosRequest{}
-	mi := &file_scenario_v1_scenario_proto_msgTypes[14]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -859,7 +983,7 @@ func (x *GetOfflineScenariosRequest) String() string {
 func (*GetOfflineScenariosRequest) ProtoMessage() {}
 
 func (x *GetOfflineScenariosRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_scenario_v1_scenario_proto_msgTypes[14]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -872,7 +996,7 @@ func (x *GetOfflineScenariosRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOfflineScenariosRequest.ProtoReflect.Descriptor instead.
 func (*GetOfflineScenariosRequest) Descriptor() ([]byte, []int) {
-	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{14}
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetOfflineScenariosRequest) GetEdgeId() string {
@@ -891,7 +1015,7 @@ type GetOfflineScenariosResponse struct {
 
 func (x *GetOfflineScenariosResponse) Reset() {
 	*x = GetOfflineScenariosResponse{}
-	mi := &file_scenario_v1_scenario_proto_msgTypes[15]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -903,7 +1027,7 @@ func (x *GetOfflineScenariosResponse) String() string {
 func (*GetOfflineScenariosResponse) ProtoMessage() {}
 
 func (x *GetOfflineScenariosResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_scenario_v1_scenario_proto_msgTypes[15]
+	mi := &file_scenario_v1_scenario_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -916,7 +1040,7 @@ func (x *GetOfflineScenariosResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOfflineScenariosResponse.ProtoReflect.Descriptor instead.
 func (*GetOfflineScenariosResponse) Descriptor() ([]byte, []int) {
-	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{15}
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetOfflineScenariosResponse) GetScenarios() []*Scenario {
@@ -926,17 +1050,250 @@ func (x *GetOfflineScenariosResponse) GetScenarios() []*Scenario {
 	return nil
 }
 
+type ListVoiceCommandsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EdgeId        string                 `protobuf:"bytes,1,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
+	RoomId        string                 `protobuf:"bytes,2,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListVoiceCommandsRequest) Reset() {
+	*x = ListVoiceCommandsRequest{}
+	mi := &file_scenario_v1_scenario_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListVoiceCommandsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVoiceCommandsRequest) ProtoMessage() {}
+
+func (x *ListVoiceCommandsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_scenario_v1_scenario_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVoiceCommandsRequest.ProtoReflect.Descriptor instead.
+func (*ListVoiceCommandsRequest) Descriptor() ([]byte, []int) {
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ListVoiceCommandsRequest) GetEdgeId() string {
+	if x != nil {
+		return x.EdgeId
+	}
+	return ""
+}
+
+func (x *ListVoiceCommandsRequest) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+type ListVoiceCommandsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Commands      []*VoiceCommand        `protobuf:"bytes,1,rep,name=commands,proto3" json:"commands,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListVoiceCommandsResponse) Reset() {
+	*x = ListVoiceCommandsResponse{}
+	mi := &file_scenario_v1_scenario_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListVoiceCommandsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVoiceCommandsResponse) ProtoMessage() {}
+
+func (x *ListVoiceCommandsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_scenario_v1_scenario_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVoiceCommandsResponse.ProtoReflect.Descriptor instead.
+func (*ListVoiceCommandsResponse) Descriptor() ([]byte, []int) {
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ListVoiceCommandsResponse) GetCommands() []*VoiceCommand {
+	if x != nil {
+		return x.Commands
+	}
+	return nil
+}
+
+type ExecuteVoiceCommandRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EdgeId        string                 `protobuf:"bytes,1,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
+	RoomId        string                 `protobuf:"bytes,2,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	CommandName   string                 `protobuf:"bytes,3,opt,name=command_name,json=commandName,proto3" json:"command_name,omitempty"`
+	Source        string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExecuteVoiceCommandRequest) Reset() {
+	*x = ExecuteVoiceCommandRequest{}
+	mi := &file_scenario_v1_scenario_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExecuteVoiceCommandRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExecuteVoiceCommandRequest) ProtoMessage() {}
+
+func (x *ExecuteVoiceCommandRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_scenario_v1_scenario_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExecuteVoiceCommandRequest.ProtoReflect.Descriptor instead.
+func (*ExecuteVoiceCommandRequest) Descriptor() ([]byte, []int) {
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ExecuteVoiceCommandRequest) GetEdgeId() string {
+	if x != nil {
+		return x.EdgeId
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandRequest) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandRequest) GetCommandName() string {
+	if x != nil {
+		return x.CommandName
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+type ExecuteVoiceCommandResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ScenarioId    string                 `protobuf:"bytes,1,opt,name=scenario_id,json=scenarioId,proto3" json:"scenario_id,omitempty"`
+	ScenarioName  string                 `protobuf:"bytes,2,opt,name=scenario_name,json=scenarioName,proto3" json:"scenario_name,omitempty"`
+	Decision      *Decision              `protobuf:"bytes,3,opt,name=decision,proto3" json:"decision,omitempty"`
+	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExecuteVoiceCommandResponse) Reset() {
+	*x = ExecuteVoiceCommandResponse{}
+	mi := &file_scenario_v1_scenario_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExecuteVoiceCommandResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExecuteVoiceCommandResponse) ProtoMessage() {}
+
+func (x *ExecuteVoiceCommandResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_scenario_v1_scenario_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExecuteVoiceCommandResponse.ProtoReflect.Descriptor instead.
+func (*ExecuteVoiceCommandResponse) Descriptor() ([]byte, []int) {
+	return file_scenario_v1_scenario_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ExecuteVoiceCommandResponse) GetScenarioId() string {
+	if x != nil {
+		return x.ScenarioId
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandResponse) GetScenarioName() string {
+	if x != nil {
+		return x.ScenarioName
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandResponse) GetDecision() *Decision {
+	if x != nil {
+		return x.Decision
+	}
+	return nil
+}
+
+func (x *ExecuteVoiceCommandResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 var File_scenario_v1_scenario_proto protoreflect.FileDescriptor
 
 const file_scenario_v1_scenario_proto_rawDesc = "" +
 	"\n" +
-	"\x1ascenario/v1/scenario.proto\x12\vscenario.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8f\x01\n" +
+	"\x1ascenario/v1/scenario.proto\x12\vscenario.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb2\x01\n" +
 	"\aTrigger\x12!\n" +
 	"\ftrigger_type\x18\x01 \x01(\tR\vtriggerType\x12\x1d\n" +
 	"\n" +
 	"event_type\x18\x02 \x01(\tR\teventType\x12\x1b\n" +
 	"\tentity_id\x18\x03 \x01(\tR\bentityId\x12%\n" +
-	"\x0eexpected_state\x18\x04 \x01(\tR\rexpectedState\"o\n" +
+	"\x0eexpected_state\x18\x04 \x01(\tR\rexpectedState\x12!\n" +
+	"\fcommand_name\x18\x05 \x01(\tR\vcommandName\"o\n" +
 	"\tCondition\x12%\n" +
 	"\x0econdition_type\x18\x01 \x01(\tR\rconditionType\x12\x14\n" +
 	"\x05field\x18\x02 \x01(\tR\x05field\x12%\n" +
@@ -972,12 +1329,24 @@ const file_scenario_v1_scenario_proto_rawDesc = "" +
 	"event_type\x18\x05 \x01(\tR\teventType\x12\x14\n" +
 	"\x05state\x18\x06 \x01(\tR\x05state\x12;\n" +
 	"\voccurred_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"occurredAt\"r\n" +
+	"occurredAt\"\xa4\x01\n" +
 	"\bDecision\x12\x1f\n" +
 	"\vdecision_id\x18\x01 \x01(\tR\n" +
 	"decisionId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12-\n" +
-	"\aactions\x18\x03 \x03(\v2\x13.scenario.v1.ActionR\aactions\"/\n" +
+	"\aactions\x18\x03 \x03(\v2\x13.scenario.v1.ActionR\aactions\x120\n" +
+	"\x14matched_scenario_ids\x18\x04 \x03(\tR\x12matchedScenarioIds\"\xa2\x02\n" +
+	"\fVoiceCommand\x12\x1f\n" +
+	"\vscenario_id\x18\x01 \x01(\tR\n" +
+	"scenarioId\x12#\n" +
+	"\rscenario_name\x18\x02 \x01(\tR\fscenarioName\x12\x17\n" +
+	"\aedge_id\x18\x03 \x01(\tR\x06edgeId\x12\x17\n" +
+	"\aroom_id\x18\x04 \x01(\tR\x06roomId\x12!\n" +
+	"\fcommand_name\x18\x05 \x01(\tR\vcommandName\x12\x1b\n" +
+	"\tdevice_id\x18\x06 \x01(\tR\bdeviceId\x12\x1b\n" +
+	"\tentity_id\x18\a \x01(\tR\bentityId\x12!\n" +
+	"\ftarget_state\x18\b \x01(\tR\vtargetState\x12\x1a\n" +
+	"\bpriority\x18\t \x01(\x05R\bpriority\"/\n" +
 	"\x14ListScenariosRequest\x12\x17\n" +
 	"\aedge_id\x18\x01 \x01(\tR\x06edgeId\"L\n" +
 	"\x15ListScenariosResponse\x123\n" +
@@ -998,13 +1367,31 @@ const file_scenario_v1_scenario_proto_rawDesc = "" +
 	"\x1aGetOfflineScenariosRequest\x12\x17\n" +
 	"\aedge_id\x18\x01 \x01(\tR\x06edgeId\"R\n" +
 	"\x1bGetOfflineScenariosResponse\x123\n" +
-	"\tscenarios\x18\x01 \x03(\v2\x15.scenario.v1.ScenarioR\tscenarios2\xd2\x03\n" +
+	"\tscenarios\x18\x01 \x03(\v2\x15.scenario.v1.ScenarioR\tscenarios\"L\n" +
+	"\x18ListVoiceCommandsRequest\x12\x17\n" +
+	"\aedge_id\x18\x01 \x01(\tR\x06edgeId\x12\x17\n" +
+	"\aroom_id\x18\x02 \x01(\tR\x06roomId\"R\n" +
+	"\x19ListVoiceCommandsResponse\x125\n" +
+	"\bcommands\x18\x01 \x03(\v2\x19.scenario.v1.VoiceCommandR\bcommands\"\x89\x01\n" +
+	"\x1aExecuteVoiceCommandRequest\x12\x17\n" +
+	"\aedge_id\x18\x01 \x01(\tR\x06edgeId\x12\x17\n" +
+	"\aroom_id\x18\x02 \x01(\tR\x06roomId\x12!\n" +
+	"\fcommand_name\x18\x03 \x01(\tR\vcommandName\x12\x16\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\"\xae\x01\n" +
+	"\x1bExecuteVoiceCommandResponse\x12\x1f\n" +
+	"\vscenario_id\x18\x01 \x01(\tR\n" +
+	"scenarioId\x12#\n" +
+	"\rscenario_name\x18\x02 \x01(\tR\fscenarioName\x121\n" +
+	"\bdecision\x18\x03 \x01(\v2\x15.scenario.v1.DecisionR\bdecision\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status2\xa0\x05\n" +
 	"\x0fScenarioService\x12V\n" +
 	"\rListScenarios\x12!.scenario.v1.ListScenariosRequest\x1a\".scenario.v1.ListScenariosResponse\x12P\n" +
 	"\vGetScenario\x12\x1f.scenario.v1.GetScenarioRequest\x1a .scenario.v1.GetScenarioResponse\x12S\n" +
 	"\fSaveScenario\x12 .scenario.v1.SaveScenarioRequest\x1a!.scenario.v1.SaveScenarioResponse\x12V\n" +
 	"\rEvaluateEvent\x12!.scenario.v1.EvaluateEventRequest\x1a\".scenario.v1.EvaluateEventResponse\x12h\n" +
-	"\x13GetOfflineScenarios\x12'.scenario.v1.GetOfflineScenariosRequest\x1a(.scenario.v1.GetOfflineScenariosResponseB0Z.scenario-service/pkg/pb/scenario/v1;scenariov1b\x06proto3"
+	"\x13GetOfflineScenarios\x12'.scenario.v1.GetOfflineScenariosRequest\x1a(.scenario.v1.GetOfflineScenariosResponse\x12b\n" +
+	"\x11ListVoiceCommands\x12%.scenario.v1.ListVoiceCommandsRequest\x1a&.scenario.v1.ListVoiceCommandsResponse\x12h\n" +
+	"\x13ExecuteVoiceCommand\x12'.scenario.v1.ExecuteVoiceCommandRequest\x1a(.scenario.v1.ExecuteVoiceCommandResponseB0Z.scenario-service/pkg/pb/scenario/v1;scenariov1b\x06proto3"
 
 var (
 	file_scenario_v1_scenario_proto_rawDescOnce sync.Once
@@ -1018,7 +1405,7 @@ func file_scenario_v1_scenario_proto_rawDescGZIP() []byte {
 	return file_scenario_v1_scenario_proto_rawDescData
 }
 
-var file_scenario_v1_scenario_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_scenario_v1_scenario_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_scenario_v1_scenario_proto_goTypes = []any{
 	(*Trigger)(nil),                     // 0: scenario.v1.Trigger
 	(*Condition)(nil),                   // 1: scenario.v1.Condition
@@ -1026,24 +1413,29 @@ var file_scenario_v1_scenario_proto_goTypes = []any{
 	(*Scenario)(nil),                    // 3: scenario.v1.Scenario
 	(*EventEnvelope)(nil),               // 4: scenario.v1.EventEnvelope
 	(*Decision)(nil),                    // 5: scenario.v1.Decision
-	(*ListScenariosRequest)(nil),        // 6: scenario.v1.ListScenariosRequest
-	(*ListScenariosResponse)(nil),       // 7: scenario.v1.ListScenariosResponse
-	(*GetScenarioRequest)(nil),          // 8: scenario.v1.GetScenarioRequest
-	(*GetScenarioResponse)(nil),         // 9: scenario.v1.GetScenarioResponse
-	(*SaveScenarioRequest)(nil),         // 10: scenario.v1.SaveScenarioRequest
-	(*SaveScenarioResponse)(nil),        // 11: scenario.v1.SaveScenarioResponse
-	(*EvaluateEventRequest)(nil),        // 12: scenario.v1.EvaluateEventRequest
-	(*EvaluateEventResponse)(nil),       // 13: scenario.v1.EvaluateEventResponse
-	(*GetOfflineScenariosRequest)(nil),  // 14: scenario.v1.GetOfflineScenariosRequest
-	(*GetOfflineScenariosResponse)(nil), // 15: scenario.v1.GetOfflineScenariosResponse
-	(*timestamppb.Timestamp)(nil),       // 16: google.protobuf.Timestamp
+	(*VoiceCommand)(nil),                // 6: scenario.v1.VoiceCommand
+	(*ListScenariosRequest)(nil),        // 7: scenario.v1.ListScenariosRequest
+	(*ListScenariosResponse)(nil),       // 8: scenario.v1.ListScenariosResponse
+	(*GetScenarioRequest)(nil),          // 9: scenario.v1.GetScenarioRequest
+	(*GetScenarioResponse)(nil),         // 10: scenario.v1.GetScenarioResponse
+	(*SaveScenarioRequest)(nil),         // 11: scenario.v1.SaveScenarioRequest
+	(*SaveScenarioResponse)(nil),        // 12: scenario.v1.SaveScenarioResponse
+	(*EvaluateEventRequest)(nil),        // 13: scenario.v1.EvaluateEventRequest
+	(*EvaluateEventResponse)(nil),       // 14: scenario.v1.EvaluateEventResponse
+	(*GetOfflineScenariosRequest)(nil),  // 15: scenario.v1.GetOfflineScenariosRequest
+	(*GetOfflineScenariosResponse)(nil), // 16: scenario.v1.GetOfflineScenariosResponse
+	(*ListVoiceCommandsRequest)(nil),    // 17: scenario.v1.ListVoiceCommandsRequest
+	(*ListVoiceCommandsResponse)(nil),   // 18: scenario.v1.ListVoiceCommandsResponse
+	(*ExecuteVoiceCommandRequest)(nil),  // 19: scenario.v1.ExecuteVoiceCommandRequest
+	(*ExecuteVoiceCommandResponse)(nil), // 20: scenario.v1.ExecuteVoiceCommandResponse
+	(*timestamppb.Timestamp)(nil),       // 21: google.protobuf.Timestamp
 }
 var file_scenario_v1_scenario_proto_depIdxs = []int32{
 	0,  // 0: scenario.v1.Scenario.triggers:type_name -> scenario.v1.Trigger
 	1,  // 1: scenario.v1.Scenario.conditions:type_name -> scenario.v1.Condition
 	2,  // 2: scenario.v1.Scenario.actions:type_name -> scenario.v1.Action
-	16, // 3: scenario.v1.Scenario.updated_at:type_name -> google.protobuf.Timestamp
-	16, // 4: scenario.v1.EventEnvelope.occurred_at:type_name -> google.protobuf.Timestamp
+	21, // 3: scenario.v1.Scenario.updated_at:type_name -> google.protobuf.Timestamp
+	21, // 4: scenario.v1.EventEnvelope.occurred_at:type_name -> google.protobuf.Timestamp
 	2,  // 5: scenario.v1.Decision.actions:type_name -> scenario.v1.Action
 	3,  // 6: scenario.v1.ListScenariosResponse.scenarios:type_name -> scenario.v1.Scenario
 	3,  // 7: scenario.v1.GetScenarioResponse.scenario:type_name -> scenario.v1.Scenario
@@ -1052,21 +1444,27 @@ var file_scenario_v1_scenario_proto_depIdxs = []int32{
 	4,  // 10: scenario.v1.EvaluateEventRequest.event:type_name -> scenario.v1.EventEnvelope
 	5,  // 11: scenario.v1.EvaluateEventResponse.decision:type_name -> scenario.v1.Decision
 	3,  // 12: scenario.v1.GetOfflineScenariosResponse.scenarios:type_name -> scenario.v1.Scenario
-	6,  // 13: scenario.v1.ScenarioService.ListScenarios:input_type -> scenario.v1.ListScenariosRequest
-	8,  // 14: scenario.v1.ScenarioService.GetScenario:input_type -> scenario.v1.GetScenarioRequest
-	10, // 15: scenario.v1.ScenarioService.SaveScenario:input_type -> scenario.v1.SaveScenarioRequest
-	12, // 16: scenario.v1.ScenarioService.EvaluateEvent:input_type -> scenario.v1.EvaluateEventRequest
-	14, // 17: scenario.v1.ScenarioService.GetOfflineScenarios:input_type -> scenario.v1.GetOfflineScenariosRequest
-	7,  // 18: scenario.v1.ScenarioService.ListScenarios:output_type -> scenario.v1.ListScenariosResponse
-	9,  // 19: scenario.v1.ScenarioService.GetScenario:output_type -> scenario.v1.GetScenarioResponse
-	11, // 20: scenario.v1.ScenarioService.SaveScenario:output_type -> scenario.v1.SaveScenarioResponse
-	13, // 21: scenario.v1.ScenarioService.EvaluateEvent:output_type -> scenario.v1.EvaluateEventResponse
-	15, // 22: scenario.v1.ScenarioService.GetOfflineScenarios:output_type -> scenario.v1.GetOfflineScenariosResponse
-	18, // [18:23] is the sub-list for method output_type
-	13, // [13:18] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	6,  // 13: scenario.v1.ListVoiceCommandsResponse.commands:type_name -> scenario.v1.VoiceCommand
+	5,  // 14: scenario.v1.ExecuteVoiceCommandResponse.decision:type_name -> scenario.v1.Decision
+	7,  // 15: scenario.v1.ScenarioService.ListScenarios:input_type -> scenario.v1.ListScenariosRequest
+	9,  // 16: scenario.v1.ScenarioService.GetScenario:input_type -> scenario.v1.GetScenarioRequest
+	11, // 17: scenario.v1.ScenarioService.SaveScenario:input_type -> scenario.v1.SaveScenarioRequest
+	13, // 18: scenario.v1.ScenarioService.EvaluateEvent:input_type -> scenario.v1.EvaluateEventRequest
+	15, // 19: scenario.v1.ScenarioService.GetOfflineScenarios:input_type -> scenario.v1.GetOfflineScenariosRequest
+	17, // 20: scenario.v1.ScenarioService.ListVoiceCommands:input_type -> scenario.v1.ListVoiceCommandsRequest
+	19, // 21: scenario.v1.ScenarioService.ExecuteVoiceCommand:input_type -> scenario.v1.ExecuteVoiceCommandRequest
+	8,  // 22: scenario.v1.ScenarioService.ListScenarios:output_type -> scenario.v1.ListScenariosResponse
+	10, // 23: scenario.v1.ScenarioService.GetScenario:output_type -> scenario.v1.GetScenarioResponse
+	12, // 24: scenario.v1.ScenarioService.SaveScenario:output_type -> scenario.v1.SaveScenarioResponse
+	14, // 25: scenario.v1.ScenarioService.EvaluateEvent:output_type -> scenario.v1.EvaluateEventResponse
+	16, // 26: scenario.v1.ScenarioService.GetOfflineScenarios:output_type -> scenario.v1.GetOfflineScenariosResponse
+	18, // 27: scenario.v1.ScenarioService.ListVoiceCommands:output_type -> scenario.v1.ListVoiceCommandsResponse
+	20, // 28: scenario.v1.ScenarioService.ExecuteVoiceCommand:output_type -> scenario.v1.ExecuteVoiceCommandResponse
+	22, // [22:29] is the sub-list for method output_type
+	15, // [15:22] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_scenario_v1_scenario_proto_init() }
@@ -1080,7 +1478,7 @@ func file_scenario_v1_scenario_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_scenario_v1_scenario_proto_rawDesc), len(file_scenario_v1_scenario_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

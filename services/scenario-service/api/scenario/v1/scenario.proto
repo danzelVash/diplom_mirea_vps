@@ -12,6 +12,8 @@ service ScenarioService {
   rpc SaveScenario(SaveScenarioRequest) returns (SaveScenarioResponse);
   rpc EvaluateEvent(EvaluateEventRequest) returns (EvaluateEventResponse);
   rpc GetOfflineScenarios(GetOfflineScenariosRequest) returns (GetOfflineScenariosResponse);
+  rpc ListVoiceCommands(ListVoiceCommandsRequest) returns (ListVoiceCommandsResponse);
+  rpc ExecuteVoiceCommand(ExecuteVoiceCommandRequest) returns (ExecuteVoiceCommandResponse);
 }
 
 message Trigger {
@@ -19,6 +21,7 @@ message Trigger {
   string event_type = 2;
   string entity_id = 3;
   string expected_state = 4;
+  string command_name = 5;
 }
 
 message Condition {
@@ -61,6 +64,19 @@ message Decision {
   string decision_id = 1;
   string status = 2;
   repeated Action actions = 3;
+  repeated string matched_scenario_ids = 4;
+}
+
+message VoiceCommand {
+  string scenario_id = 1;
+  string scenario_name = 2;
+  string edge_id = 3;
+  string room_id = 4;
+  string command_name = 5;
+  string device_id = 6;
+  string entity_id = 7;
+  string target_state = 8;
+  int32 priority = 9;
 }
 
 message ListScenariosRequest {
@@ -103,3 +119,25 @@ message GetOfflineScenariosResponse {
   repeated Scenario scenarios = 1;
 }
 
+message ListVoiceCommandsRequest {
+  string edge_id = 1;
+  string room_id = 2;
+}
+
+message ListVoiceCommandsResponse {
+  repeated VoiceCommand commands = 1;
+}
+
+message ExecuteVoiceCommandRequest {
+  string edge_id = 1;
+  string room_id = 2;
+  string command_name = 3;
+  string source = 4;
+}
+
+message ExecuteVoiceCommandResponse {
+  string scenario_id = 1;
+  string scenario_name = 2;
+  Decision decision = 3;
+  string status = 4;
+}

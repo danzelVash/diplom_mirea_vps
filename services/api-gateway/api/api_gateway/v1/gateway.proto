@@ -47,25 +47,41 @@ message ExecuteDeviceCommandResponse {
 
 message SaveScenarioRequest {
   string scenario_id = 1;
-  string name = 2;
-  bool enabled = 3;
+  string edge_id = 2;
+  string room_id = 3;
+  string name = 4;
+  string voice_command = 5;
+  bool enabled = 6;
+  bool offline_eligible = 7;
+  int32 priority = 8;
+  string device_id = 9;
+  string entity_id = 10;
+  string target_state = 11;
 }
 
 message SaveScenarioResponse {
   string scenario_id = 1;
   string status = 2;
+  string voice_command = 3;
 }
 
 message ParseVoiceCommandRequest {
   bytes audio = 1;
   string room_id = 2;
   string edge_id = 3;
+  string source = 4;
 }
 
 message ParseVoiceCommandResponse {
   string command_id = 1;
   string intent = 2;
   string status = 3;
+  string recognized_command = 4;
+  string scenario_id = 5;
+  string scenario_name = 6;
+  string device_id = 7;
+  string entity_id = 8;
+  string target_state = 9;
 }
 
 message AnalyzeFrameRequest {
@@ -78,4 +94,3 @@ message AnalyzeFrameResponse {
   string request_id = 1;
   string status = 2;
 }
-

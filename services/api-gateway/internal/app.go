@@ -43,7 +43,9 @@ func New() *App {
 		cfg:      config.LoadDefault(),
 		grpcConn: make(map[string]*grpc.ClientConn),
 	}
-	_ = app.init()
+	if err := app.init(); err != nil {
+		panic(err)
+	}
 	return app
 }
 

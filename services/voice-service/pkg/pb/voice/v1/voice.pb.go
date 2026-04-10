@@ -74,17 +74,22 @@ func (x *Slot) GetValue() string {
 }
 
 type ParsedVoiceCommand struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	CommandId     string                 `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
-	Intent        string                 `protobuf:"bytes,2,opt,name=intent,proto3" json:"intent,omitempty"`
-	RoomId        string                 `protobuf:"bytes,3,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
-	DeviceId      string                 `protobuf:"bytes,4,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	EntityId      string                 `protobuf:"bytes,5,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
-	TargetState   string                 `protobuf:"bytes,6,opt,name=target_state,json=targetState,proto3" json:"target_state,omitempty"`
-	Confidence    float64                `protobuf:"fixed64,7,opt,name=confidence,proto3" json:"confidence,omitempty"`
-	Slots         []*Slot                `protobuf:"bytes,8,rep,name=slots,proto3" json:"slots,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	CommandId         string                 `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
+	Intent            string                 `protobuf:"bytes,2,opt,name=intent,proto3" json:"intent,omitempty"`
+	RoomId            string                 `protobuf:"bytes,3,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	DeviceId          string                 `protobuf:"bytes,4,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	EntityId          string                 `protobuf:"bytes,5,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
+	TargetState       string                 `protobuf:"bytes,6,opt,name=target_state,json=targetState,proto3" json:"target_state,omitempty"`
+	Confidence        float64                `protobuf:"fixed64,7,opt,name=confidence,proto3" json:"confidence,omitempty"`
+	Slots             []*Slot                `protobuf:"bytes,8,rep,name=slots,proto3" json:"slots,omitempty"`
+	RecognizedCommand string                 `protobuf:"bytes,9,opt,name=recognized_command,json=recognizedCommand,proto3" json:"recognized_command,omitempty"`
+	ScenarioId        string                 `protobuf:"bytes,10,opt,name=scenario_id,json=scenarioId,proto3" json:"scenario_id,omitempty"`
+	ScenarioName      string                 `protobuf:"bytes,11,opt,name=scenario_name,json=scenarioName,proto3" json:"scenario_name,omitempty"`
+	ExecutionStatus   string                 `protobuf:"bytes,12,opt,name=execution_status,json=executionStatus,proto3" json:"execution_status,omitempty"`
+	DecisionId        string                 `protobuf:"bytes,13,opt,name=decision_id,json=decisionId,proto3" json:"decision_id,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ParsedVoiceCommand) Reset() {
@@ -173,11 +178,47 @@ func (x *ParsedVoiceCommand) GetSlots() []*Slot {
 	return nil
 }
 
+func (x *ParsedVoiceCommand) GetRecognizedCommand() string {
+	if x != nil {
+		return x.RecognizedCommand
+	}
+	return ""
+}
+
+func (x *ParsedVoiceCommand) GetScenarioId() string {
+	if x != nil {
+		return x.ScenarioId
+	}
+	return ""
+}
+
+func (x *ParsedVoiceCommand) GetScenarioName() string {
+	if x != nil {
+		return x.ScenarioName
+	}
+	return ""
+}
+
+func (x *ParsedVoiceCommand) GetExecutionStatus() string {
+	if x != nil {
+		return x.ExecutionStatus
+	}
+	return ""
+}
+
+func (x *ParsedVoiceCommand) GetDecisionId() string {
+	if x != nil {
+		return x.DecisionId
+	}
+	return ""
+}
+
 type ParseVoiceCommandRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Audio         []byte                 `protobuf:"bytes,1,opt,name=audio,proto3" json:"audio,omitempty"`
 	EdgeId        string                 `protobuf:"bytes,2,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
 	RoomId        string                 `protobuf:"bytes,3,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	Source        string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -233,6 +274,13 @@ func (x *ParseVoiceCommandRequest) GetRoomId() string {
 	return ""
 }
 
+func (x *ParseVoiceCommandRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
 type ParseVoiceCommandResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Command       *ParsedVoiceCommand    `protobuf:"bytes,1,opt,name=command,proto3" json:"command,omitempty"`
@@ -281,6 +329,8 @@ type MatchOfflinePhraseRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Phrase        string                 `protobuf:"bytes,1,opt,name=phrase,proto3" json:"phrase,omitempty"`
 	EdgeId        string                 `protobuf:"bytes,2,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
+	RoomId        string                 `protobuf:"bytes,3,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	Source        string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -325,6 +375,20 @@ func (x *MatchOfflinePhraseRequest) GetPhrase() string {
 func (x *MatchOfflinePhraseRequest) GetEdgeId() string {
 	if x != nil {
 		return x.EdgeId
+	}
+	return ""
+}
+
+func (x *MatchOfflinePhraseRequest) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *MatchOfflinePhraseRequest) GetSource() string {
+	if x != nil {
+		return x.Source
 	}
 	return ""
 }
@@ -380,7 +444,7 @@ const file_voice_v1_voice_proto_rawDesc = "" +
 	"\x14voice/v1/voice.proto\x12\bvoice.v1\"0\n" +
 	"\x04Slot\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value\"\x87\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\xc8\x03\n" +
 	"\x12ParsedVoiceCommand\x12\x1d\n" +
 	"\n" +
 	"command_id\x18\x01 \x01(\tR\tcommandId\x12\x16\n" +
@@ -392,16 +456,27 @@ const file_voice_v1_voice_proto_rawDesc = "" +
 	"\n" +
 	"confidence\x18\a \x01(\x01R\n" +
 	"confidence\x12$\n" +
-	"\x05slots\x18\b \x03(\v2\x0e.voice.v1.SlotR\x05slots\"b\n" +
+	"\x05slots\x18\b \x03(\v2\x0e.voice.v1.SlotR\x05slots\x12-\n" +
+	"\x12recognized_command\x18\t \x01(\tR\x11recognizedCommand\x12\x1f\n" +
+	"\vscenario_id\x18\n" +
+	" \x01(\tR\n" +
+	"scenarioId\x12#\n" +
+	"\rscenario_name\x18\v \x01(\tR\fscenarioName\x12)\n" +
+	"\x10execution_status\x18\f \x01(\tR\x0fexecutionStatus\x12\x1f\n" +
+	"\vdecision_id\x18\r \x01(\tR\n" +
+	"decisionId\"z\n" +
 	"\x18ParseVoiceCommandRequest\x12\x14\n" +
 	"\x05audio\x18\x01 \x01(\fR\x05audio\x12\x17\n" +
 	"\aedge_id\x18\x02 \x01(\tR\x06edgeId\x12\x17\n" +
-	"\aroom_id\x18\x03 \x01(\tR\x06roomId\"S\n" +
+	"\aroom_id\x18\x03 \x01(\tR\x06roomId\x12\x16\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\"S\n" +
 	"\x19ParseVoiceCommandResponse\x126\n" +
-	"\acommand\x18\x01 \x01(\v2\x1c.voice.v1.ParsedVoiceCommandR\acommand\"L\n" +
+	"\acommand\x18\x01 \x01(\v2\x1c.voice.v1.ParsedVoiceCommandR\acommand\"}\n" +
 	"\x19MatchOfflinePhraseRequest\x12\x16\n" +
 	"\x06phrase\x18\x01 \x01(\tR\x06phrase\x12\x17\n" +
-	"\aedge_id\x18\x02 \x01(\tR\x06edgeId\"T\n" +
+	"\aedge_id\x18\x02 \x01(\tR\x06edgeId\x12\x17\n" +
+	"\aroom_id\x18\x03 \x01(\tR\x06roomId\x12\x16\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\"T\n" +
 	"\x1aMatchOfflinePhraseResponse\x126\n" +
 	"\acommand\x18\x01 \x01(\v2\x1c.voice.v1.ParsedVoiceCommandR\acommand2\xcd\x01\n" +
 	"\fVoiceService\x12\\\n" +

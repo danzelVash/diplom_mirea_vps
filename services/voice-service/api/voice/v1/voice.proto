@@ -23,12 +23,18 @@ message ParsedVoiceCommand {
   string target_state = 6;
   double confidence = 7;
   repeated Slot slots = 8;
+  string recognized_command = 9;
+  string scenario_id = 10;
+  string scenario_name = 11;
+  string execution_status = 12;
+  string decision_id = 13;
 }
 
 message ParseVoiceCommandRequest {
   bytes audio = 1;
   string edge_id = 2;
   string room_id = 3;
+  string source = 4;
 }
 
 message ParseVoiceCommandResponse {
@@ -38,9 +44,10 @@ message ParseVoiceCommandResponse {
 message MatchOfflinePhraseRequest {
   string phrase = 1;
   string edge_id = 2;
+  string room_id = 3;
+  string source = 4;
 }
 
 message MatchOfflinePhraseResponse {
   ParsedVoiceCommand command = 1;
 }
-

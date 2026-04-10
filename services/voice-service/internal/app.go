@@ -6,9 +6,12 @@ import (
 	"log/slog"
 	"net"
 
+	scenariov1 "scenario-service/pkg/pb/scenario/v1"
 	"voice-service/config"
 	voicehandler "voice-service/internal/app/voice/v1"
+	voiceservice "voice-service/internal/service"
 	voicev1 "voice-service/pkg/pb/voice/v1"
+	voicerecognitionv1 "voice-service/pkg/pb/voice_recognition/v1"
 
 	"google.golang.org/grpc"
 )
@@ -18,21 +21,29 @@ type App struct {
 	cfg          config.Config
 	grpcServer   *grpc.Server
 	grpcListener net.Listener
+	grpcConn     map[string]*grpc.ClientConn
+
+	scenarioClient         scenariov1.ScenarioServiceClient
+	voiceRecognitionClient voicerecognitionv1.VoiceRecognitionServiceClient
+	service                *voiceservice.Service
 }
 
 func New() *App {
 	app := &App{
-		name: config.AppName,
-		cfg:  config.LoadDefault(),
+		name:     config.AppName,
+		cfg:      config.LoadDefault(),
+		grpcConn: make(map[string]*grpc.ClientConn),
 	}
-	_ = app.init()
+	if err := app.init(); err != nil {
+		panic(err)
+	}
 	return app
 }
 
 func (a *App) Run(_ context.Context) {
-	voicev1.RegisterVoiceServiceServer(a.grpcServer, voicehandler.New())
+	voicev1.RegisterVoiceServiceServer(a.grpcServer, voicehandler.New(a.service))
 
-	slog.Info("service skeleton started",
+	slog.Info("service started",
 		"service", a.name,
 		"role", a.cfg.Role,
 		"http_port", a.cfg.HTTP.Port,
