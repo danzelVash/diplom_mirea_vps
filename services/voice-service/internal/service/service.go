@@ -174,21 +174,8 @@ func (s *Service) recognize(ctx context.Context, audio []byte, commands []string
 }
 
 func (s *Service) mockRecognize(audio []byte, commands []string) string {
-	if s.mockCommand != "" {
-		for _, command := range commands {
-			if normalize(command) == normalize(s.mockCommand) {
-				return command
-			}
-		}
-	}
-
-	text := normalize(string(audio))
-	for _, command := range commands {
-		if text != "" && strings.Contains(text, normalize(command)) {
-			return command
-		}
-	}
-
+	_ = audio
+	_ = s.mockCommand
 	return commands[0]
 }
 
