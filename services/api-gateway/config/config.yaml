@@ -1,0 +1,12 @@
+service:
+  name: api-gateway
+  role: core-entrypoint
+
+http:
+  host: 0.0.0.0
+  port: 8080
+
+grpc:
+  host: 0.0.0.0
+  port: 9000
+

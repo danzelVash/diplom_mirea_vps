@@ -1,20 +1,19 @@
-BINARY=core-backend
-BUILD_DIR=.build
-GOCACHE=$(BUILD_DIR)/gocache
+SERVICES := \
+	api-gateway \
+	edge-bridge-service \
+	device-service \
+	context-service \
+	scenario-service \
+	voice-service \
+	vision-service \
+	notification-service \
+	edge-agent
 
-.PHONY: build run clean test
+.PHONY: list
+list:
+	@printf "%s\n" $(SERVICES)
 
-build:
-	mkdir -p $(BUILD_DIR)
-	env GOCACHE=$(abspath $(GOCACHE)) go build -o $(BUILD_DIR)/$(BINARY) ./cmd/core
+.PHONY: tree
+tree:
+	@find services -maxdepth 2 -type d | sort
 
-run:
-	mkdir -p data $(BUILD_DIR)
-	env GOCACHE=$(abspath $(GOCACHE)) go run ./cmd/core --listen :8080 --data-dir ./data
-
-test:
-	mkdir -p $(BUILD_DIR)
-	env GOCACHE=$(abspath $(GOCACHE)) go test ./...
-
-clean:
-	rm -rf $(BUILD_DIR)

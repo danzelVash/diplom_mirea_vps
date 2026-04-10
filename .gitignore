@@ -1,4 +1,6 @@
+.idea/
+bin/
+dist/
+tmp/
 .DS_Store
-.idea
-.build
-data
+

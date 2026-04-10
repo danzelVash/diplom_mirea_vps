@@ -1,0 +1,13 @@
+service:
+  name: edge-agent
+  role: raspberry-pi-local-runtime
+  offline_enabled: true
+
+http:
+  host: 0.0.0.0
+  port: 8090
+
+grpc:
+  host: 0.0.0.0
+  port: 9010
+

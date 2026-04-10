@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  api-gateway:
+    build:
+      context: ../services/api-gateway
+      dockerfile: build/Dockerfile
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+
+  edge-bridge-service:
+    build:
+      context: ../services/edge-bridge-service
+      dockerfile: build/Dockerfile
+    ports:
+      - "8081:8081"
+      - "9001:9001"
+
+  device-service:
+    build:
+      context: ../services/device-service
+      dockerfile: build/Dockerfile
+    ports:
+      - "8082:8082"
+      - "9002:9002"
+
+  context-service:
+    build:
+      context: ../services/context-service
+      dockerfile: build/Dockerfile
+    ports:
+      - "8083:8083"
+      - "9003:9003"
+
+  scenario-service:
+    build:
+      context: ../services/scenario-service
+      dockerfile: build/Dockerfile
+    ports:
+      - "8084:8084"
+      - "9004:9004"
+
+  voice-service:
+    build:
+      context: ../services/voice-service
+      dockerfile: build/Dockerfile
+    ports:
+      - "8085:8085"
+      - "9005:9005"
+
+  vision-service:
+    build:
+      context: ../services/vision-service
+      dockerfile: build/Dockerfile
+    ports:
+      - "8086:8086"
+      - "9006:9006"
+
+  notification-service:
+    build:
+      context: ../services/notification-service
+      dockerfile: build/Dockerfile
+    ports:
+      - "8087:8087"
+      - "9007:9007"
+
+  edge-agent:
+    build:
+      context: ../services/edge-agent
+      dockerfile: build/Dockerfile
+    profiles:
+      - edge
+    ports:
+      - "8090:8090"
+      - "9010:9010"
+

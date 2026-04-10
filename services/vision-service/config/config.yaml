@@ -1,0 +1,12 @@
+service:
+  name: vision-service
+  role: video-analytics-and-identity
+
+http:
+  host: 0.0.0.0
+  port: 8086
+
+grpc:
+  host: 0.0.0.0
+  port: 9006
+

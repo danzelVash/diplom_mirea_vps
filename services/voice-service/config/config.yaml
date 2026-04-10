@@ -1,0 +1,12 @@
+service:
+  name: voice-service
+  role: speech-to-intent
+
+http:
+  host: 0.0.0.0
+  port: 8085
+
+grpc:
+  host: 0.0.0.0
+  port: 9005
+
