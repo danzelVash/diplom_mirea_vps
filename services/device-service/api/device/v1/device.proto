@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package device.v1;
+
+option go_package = "device-service/pkg/pb/device/v1;devicev1";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service DeviceService {
+  rpc ListRooms(ListRoomsRequest) returns (ListRoomsResponse);
+  rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
+  rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse);
+  rpc SyncInventory(SyncInventoryRequest) returns (SyncInventoryResponse);
+  rpc UpsertDeviceState(UpsertDeviceStateRequest) returns (UpsertDeviceStateResponse);
+  rpc ExecuteCommand(ExecuteCommandRequest) returns (ExecuteCommandResponse);
+}
+
+message Room {
+  string room_id = 1;
+  string name = 2;
+  string floor = 3;
+}
+
+message Device {
+  string device_id = 1;
+  string edge_id = 2;
+  string room_id = 3;
+  string name = 4;
+  string device_type = 5;
+  string entity_id = 6;
+  string state = 7;
+  bool offline_capable = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message DeviceState {
+  string device_id = 1;
+  string entity_id = 2;
+  string state = 3;
+  google.protobuf.Timestamp changed_at = 4;
+}
+
+message ListRoomsRequest {
+  string edge_id = 1;
+}
+
+message ListRoomsResponse {
+  repeated Room rooms = 1;
+}
+
+message ListDevicesRequest {
+  string edge_id = 1;
+  string room_id = 2;
+}
+
+message ListDevicesResponse {
+  repeated Device devices = 1;
+}
+
+message GetDeviceRequest {
+  string device_id = 1;
+}
+
+message GetDeviceResponse {
+  Device device = 1;
+}
+
+message SyncInventoryRequest {
+  string edge_id = 1;
+  repeated Room rooms = 2;
+  repeated Device devices = 3;
+}
+
+message SyncInventoryResponse {
+  string sync_id = 1;
+  string status = 2;
+}
+
+message UpsertDeviceStateRequest {
+  string edge_id = 1;
+  DeviceState state = 2;
+}
+
+message UpsertDeviceStateResponse {
+  string status = 1;
+}
+
+message ExecuteCommandRequest {
+  string command_id = 1;
+  string device_id = 2;
+  string entity_id = 3;
+  string target_state = 4;
+  string source = 5;
+}
+
+message ExecuteCommandResponse {
+  string command_id = 1;
+  string status = 2;
+}
+

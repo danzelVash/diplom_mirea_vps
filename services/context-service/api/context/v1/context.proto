@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package context.v1;
+
+option go_package = "context-service/pkg/pb/context/v1;contextv1";
+
+import "google/protobuf/timestamp.proto";
+
+service ContextService {
+  rpc GetHomeContext(GetHomeContextRequest) returns (GetHomeContextResponse);
+  rpc GetRoomContext(GetRoomContextRequest) returns (GetRoomContextResponse);
+  rpc IngestSignal(IngestSignalRequest) returns (IngestSignalResponse);
+  rpc GetPresenceContext(GetPresenceContextRequest) returns (GetPresenceContextResponse);
+}
+
+message EnvironmentSignal {
+  string signal_id = 1;
+  string source = 2;
+  string room_id = 3;
+  string signal_type = 4;
+  string value = 5;
+  google.protobuf.Timestamp observed_at = 6;
+}
+
+message HomeContext {
+  string mode = 1;
+  string occupancy_state = 2;
+  string comfort_state = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+message RoomContext {
+  string room_id = 1;
+  string occupancy_state = 2;
+  string climate_state = 3;
+  string light_state = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message PresenceContext {
+  string subject_id = 1;
+  string room_id = 2;
+  string status = 3;
+  string source = 4;
+  double confidence = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message GetHomeContextRequest {}
+
+message GetHomeContextResponse {
+  HomeContext context = 1;
+}
+
+message GetRoomContextRequest {
+  string room_id = 1;
+}
+
+message GetRoomContextResponse {
+  RoomContext context = 1;
+}
+
+message IngestSignalRequest {
+  EnvironmentSignal signal = 1;
+}
+
+message IngestSignalResponse {
+  string status = 1;
+}
+
+message GetPresenceContextRequest {
+  string subject_id = 1;
+}
+
+message GetPresenceContextResponse {
+  PresenceContext context = 1;
+}
+

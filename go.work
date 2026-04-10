@@ -9,6 +9,4 @@ use (
 	./services/voice-service
 	./services/vision-service
 	./services/notification-service
-	./services/edge-agent
 )
-

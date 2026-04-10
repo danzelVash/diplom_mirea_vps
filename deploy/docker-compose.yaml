@@ -64,14 +64,3 @@ services:
     ports:
       - "8087:8087"
       - "9007:9007"
-
-  edge-agent:
-    build:
-      context: ../services/edge-agent
-      dockerfile: build/Dockerfile
-    profiles:
-      - edge
-    ports:
-      - "8090:8090"
-      - "9010:9010"
-

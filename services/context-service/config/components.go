@@ -5,3 +5,8 @@ const (
 	DefaultRole = "context-aggregation-and-room-state"
 )
 
+const (
+	DeviceService = "device-service"
+	VoiceService  = "voice-service"
+	VisionService = "vision-service"
+)

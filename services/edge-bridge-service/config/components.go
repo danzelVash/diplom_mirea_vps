@@ -5,3 +5,7 @@ const (
 	DefaultRole = "core-edge-communication"
 )
 
+const (
+	DeviceService   = "device-service"
+	ScenarioService = "scenario-service"
+)

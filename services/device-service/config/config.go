@@ -6,16 +6,17 @@ type Server struct {
 }
 
 type Config struct {
-	Role string
-	HTTP Server
-	GRPC Server
+	Role    string
+	HTTP    Server
+	GRPC    Server
+	Targets map[string]string
 }
 
 func LoadDefault() Config {
 	return Config{
-		Role: DefaultRole,
-		HTTP: Server{Host: "0.0.0.0", Port: 8082},
-		GRPC: Server{Host: "0.0.0.0", Port: 9002},
+		Role:    DefaultRole,
+		HTTP:    Server{Host: "0.0.0.0", Port: 8082},
+		GRPC:    Server{Host: "0.0.0.0", Port: 9002},
+		Targets: map[string]string{},
 	}
 }
-

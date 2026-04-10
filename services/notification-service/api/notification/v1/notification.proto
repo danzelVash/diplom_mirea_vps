@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package notification.v1;
+
+option go_package = "notification-service/pkg/pb/notification/v1;notificationv1";
+
+import "google/protobuf/timestamp.proto";
+
+service NotificationService {
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
+  rpc CreateIncident(CreateIncidentRequest) returns (CreateIncidentResponse);
+  rpc ListIncidents(ListIncidentsRequest) returns (ListIncidentsResponse);
+}
+
+message Notification {
+  string notification_id = 1;
+  string channel = 2;
+  string title = 3;
+  string body = 4;
+  string severity = 5;
+}
+
+message Incident {
+  string incident_id = 1;
+  string type = 2;
+  string severity = 3;
+  string status = 4;
+  string source = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message SendNotificationRequest {
+  Notification notification = 1;
+}
+
+message SendNotificationResponse {
+  string notification_id = 1;
+  string status = 2;
+}
+
+message CreateIncidentRequest {
+  Incident incident = 1;
+}
+
+message CreateIncidentResponse {
+  Incident incident = 1;
+}
+
+message ListIncidentsRequest {
+  string status = 1;
+}
+
+message ListIncidentsResponse {
+  repeated Incident incidents = 1;
+}
+

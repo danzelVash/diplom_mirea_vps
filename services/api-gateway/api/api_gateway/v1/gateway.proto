@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package api_gateway.v1;
+
+option go_package = "api-gateway/pkg/pb/api_gateway/v1;gatewayv1";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service GatewayService {
+  rpc GetDashboard(google.protobuf.Empty) returns (GetDashboardResponse);
+  rpc ExecuteDeviceCommand(ExecuteDeviceCommandRequest) returns (ExecuteDeviceCommandResponse);
+  rpc SaveScenario(SaveScenarioRequest) returns (SaveScenarioResponse);
+  rpc ParseVoiceCommand(ParseVoiceCommandRequest) returns (ParseVoiceCommandResponse);
+  rpc AnalyzeFrame(AnalyzeFrameRequest) returns (AnalyzeFrameResponse);
+}
+
+message GetDashboardResponse {
+  repeated DashboardRoom rooms = 1;
+  repeated DashboardIncident incidents = 2;
+  google.protobuf.Timestamp generated_at = 3;
+}
+
+message DashboardRoom {
+  string room_id = 1;
+  string name = 2;
+  string status = 3;
+}
+
+message DashboardIncident {
+  string incident_id = 1;
+  string type = 2;
+  string severity = 3;
+}
+
+message ExecuteDeviceCommandRequest {
+  string device_id = 1;
+  string entity_id = 2;
+  string target_state = 3;
+  string source = 4;
+}
+
+message ExecuteDeviceCommandResponse {
+  string command_id = 1;
+  string status = 2;
+}
+
+message SaveScenarioRequest {
+  string scenario_id = 1;
+  string name = 2;
+  bool enabled = 3;
+}
+
+message SaveScenarioResponse {
+  string scenario_id = 1;
+  string status = 2;
+}
+
+message ParseVoiceCommandRequest {
+  bytes audio = 1;
+  string room_id = 2;
+  string edge_id = 3;
+}
+
+message ParseVoiceCommandResponse {
+  string command_id = 1;
+  string intent = 2;
+  string status = 3;
+}
+
+message AnalyzeFrameRequest {
+  bytes frame = 1;
+  string camera_id = 2;
+  string edge_id = 3;
+}
+
+message AnalyzeFrameResponse {
+  string request_id = 1;
+  string status = 2;
+}
+

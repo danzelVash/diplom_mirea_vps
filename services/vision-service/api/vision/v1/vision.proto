@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package vision.v1;
+
+option go_package = "vision-service/pkg/pb/vision/v1;visionv1";
+
+import "google/protobuf/timestamp.proto";
+
+service VisionService {
+  rpc AnalyzeFrame(AnalyzeFrameRequest) returns (AnalyzeFrameResponse);
+  rpc DetectAccessEvent(DetectAccessEventRequest) returns (DetectAccessEventResponse);
+}
+
+message IdentityResult {
+  string person_id = 1;
+  string status = 2;
+  double confidence = 3;
+}
+
+message AnalyzeFrameRequest {
+  bytes frame = 1;
+  string camera_id = 2;
+  string edge_id = 3;
+}
+
+message AnalyzeFrameResponse {
+  string request_id = 1;
+  repeated IdentityResult identities = 2;
+}
+
+message AccessEvent {
+  string event_id = 1;
+  string camera_id = 2;
+  string edge_id = 3;
+  string status = 4;
+  google.protobuf.Timestamp occurred_at = 5;
+}
+
+message DetectAccessEventRequest {
+  AccessEvent event = 1;
+}
+
+message DetectAccessEventResponse {
+  string incident_id = 1;
+  string status = 2;
+}
+

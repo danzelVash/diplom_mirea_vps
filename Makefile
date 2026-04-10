@@ -6,8 +6,7 @@ SERVICES := \
 	scenario-service \
 	voice-service \
 	vision-service \
-	notification-service \
-	edge-agent
+	notification-service
 
 .PHONY: list
 list:
@@ -16,4 +15,3 @@ list:
 .PHONY: tree
 tree:
 	@find services -maxdepth 2 -type d | sort
-

@@ -1,0 +1,12 @@
+version: v2
+plugins:
+  - local: protoc-gen-go
+    out: .
+    opt:
+      - module=notification-service
+  - local: protoc-gen-go-grpc
+    out: .
+    opt:
+      - module=notification-service
+inputs:
+  - directory: api
