@@ -24,16 +24,12 @@ type RecognitionClient interface {
 type Service struct {
 	scenario    ScenarioClient
 	recognition RecognitionClient
-	mode        string
-	mockCommand string
 }
 
-func New(scenario ScenarioClient, recognition RecognitionClient, mode, mockCommand string) *Service {
+func New(scenario ScenarioClient, recognition RecognitionClient) *Service {
 	return &Service{
 		scenario:    scenario,
 		recognition: recognition,
-		mode:        mode,
-		mockCommand: mockCommand,
 	}
 }
 
@@ -158,27 +154,21 @@ func (s *Service) recognize(ctx context.Context, audio []byte, commands []string
 		return "", nil
 	}
 
-	if s.mode == "external" && s.recognition != nil {
-		request := &voicerecognitionv1.GetAudioRequest{
-			Chunk: audio,
-		}
-		for _, command := range commands {
-			request.Commands = append(request.Commands, &voicerecognitionv1.GetAudioRequest_Command{Name: command})
-		}
-		response, err := s.recognition.GetAudio(ctx, request)
-		if err != nil {
-			return "", fmt.Errorf("recognize audio: %w", err)
-		}
-		return response.GetCommand(), nil
+	if s.recognition == nil {
+		return "", fmt.Errorf("voice recognition client is not configured")
 	}
 
-	return s.mockRecognize(audio, commands), nil
-}
-
-func (s *Service) mockRecognize(audio []byte, commands []string) string {
-	_ = audio
-	_ = s.mockCommand
-	return commands[0]
+	request := &voicerecognitionv1.GetAudioRequest{
+		Chunk: audio,
+	}
+	for _, command := range commands {
+		request.Commands = append(request.Commands, &voicerecognitionv1.GetAudioRequest_Command{Name: command})
+	}
+	response, err := s.recognition.GetAudio(ctx, request)
+	if err != nil {
+		return "", fmt.Errorf("recognize audio: %w", err)
+	}
+	return response.GetCommand(), nil
 }
 
 func normalize(value string) string {

@@ -10,17 +10,11 @@ type Server struct {
 	Port int
 }
 
-type Recognition struct {
-	Mode        string
-	MockCommand string
-}
-
 type Config struct {
-	Role        string
-	HTTP        Server
-	GRPC        Server
-	Recognition Recognition
-	Targets     map[string]string
+	Role    string
+	HTTP    Server
+	GRPC    Server
+	Targets map[string]string
 }
 
 func LoadDefault() Config {
@@ -28,9 +22,6 @@ func LoadDefault() Config {
 		Role: DefaultRole,
 		HTTP: Server{Host: "0.0.0.0", Port: 8085},
 		GRPC: Server{Host: "0.0.0.0", Port: 9005},
-		Recognition: Recognition{
-			Mode: "mock",
-		},
 		Targets: map[string]string{
 			ScenarioService:         "127.0.0.1:9004",
 			VoiceRecognitionService: "127.0.0.1:9010",
@@ -44,9 +35,6 @@ func LoadDefault() Config {
 
 	cfg.Targets[ScenarioService] = envString("VOICE_SCENARIO_SERVICE_ADDR", cfg.Targets[ScenarioService])
 	cfg.Targets[VoiceRecognitionService] = envString("VOICE_RECOGNITION_SERVICE_ADDR", cfg.Targets[VoiceRecognitionService])
-
-	cfg.Recognition.Mode = envString("VOICE_RECOGNITION_MODE", cfg.Recognition.Mode)
-	cfg.Recognition.MockCommand = envString("VOICE_RECOGNITION_MOCK_COMMAND", cfg.Recognition.MockCommand)
 
 	return cfg
 }

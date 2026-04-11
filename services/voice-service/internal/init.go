@@ -31,6 +31,6 @@ func (a *App) init() error {
 	a.grpcServer = grpc.NewServer()
 	a.scenarioClient = scenariov1.NewScenarioServiceClient(a.grpcConn[config.ScenarioService])
 	a.voiceRecognitionClient = voicerecognitionv1.NewVoiceRecognitionServiceClient(a.grpcConn[config.VoiceRecognitionService])
-	a.service = voiceservice.New(a.scenarioClient, a.voiceRecognitionClient, a.cfg.Recognition.Mode, a.cfg.Recognition.MockCommand)
+	a.service = voiceservice.New(a.scenarioClient, a.voiceRecognitionClient)
 	return nil
 }

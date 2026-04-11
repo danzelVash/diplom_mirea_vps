@@ -9,7 +9,7 @@
 - `api-gateway`
 - `scenario-service`
 - `voice-service`
-- внешний `voice-recognition-service` c временным `mock`-режимом внутри `voice-service`
+- внешний `voice-recognition-service`
 
 ## Смысл сценария
 
@@ -37,7 +37,7 @@ sequenceDiagram
     participant Gateway as api-gateway
     participant Voice as voice-service
     participant Scenario as scenario-service
-    participant Recognizer as voice-recognition/mock
+    participant Recognizer as voice-recognition
     participant Device as device-service
 
     UI->>Gateway: SaveScenario(edge_id, room_id, voice_command, device_id/entity_id, target_state)
@@ -86,17 +86,23 @@ sequenceDiagram
 - получает выбранную команду
 - инициирует выполнение сценария через `scenario-service`
 
-## Mock-режим распознавания
+## Интеграция с voice-recognition-service
 
-Пока внешний `voice-recognition-service` не готов, внутри `voice-service` работает `mock`.
+`voice-service` больше не содержит внутреннего `mock`-распознавания.
 
-Поведение `mock`:
+Теперь он всегда работает только через внешний `voice-recognition-service`:
 
-- если задан `VOICE_RECOGNITION_MOCK_COMMAND`, выбирается он
-- иначе `mock` пытается найти имя команды в строковом представлении входного массива байт
-- если не нашел, выбирает первую допустимую команду
+- получает аудио от edge-контура
+- запрашивает у `scenario-service` допустимые команды
+- передает в `voice-recognition-service`:
+  - `bytes chunk`
+  - `repeated Command commands`
+- получает одну выбранную команду
+- передает ее в `scenario-service` на исполнение
 
-Это позволяет уже сейчас тестировать end-to-end flow без нейросети.
+Адрес внешнего сервиса задается через:
+
+- `VOICE_RECOGNITION_SERVICE_ADDR`
 
 ## Новые gRPC-контракты
 
@@ -140,4 +146,4 @@ message GetAudioResponse {
 
 1. добавить HTTP-ручки в `api-gateway` для UI;
 2. добавить интеграционные тесты на flow `save scenario -> parse voice -> execute device action`;
-3. подключить реальный `voice-recognition-service` вместо `mock`.
+3. расширить обработку confidence/diagnostics от `voice-recognition-service`.

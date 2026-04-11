@@ -54,8 +54,8 @@ services:
 
   api-gateway:
     build:
-      context: ../services/api-gateway
-      dockerfile: build/Dockerfile
+      context: ..
+      dockerfile: services/api-gateway/build/Dockerfile
     environment:
       API_GATEWAY_HTTP_HOST: 0.0.0.0
       API_GATEWAY_HTTP_PORT: 8080
@@ -74,8 +74,8 @@ services:
 
   edge-bridge-service:
     build:
-      context: ../services/edge-bridge-service
-      dockerfile: build/Dockerfile
+      context: ..
+      dockerfile: services/edge-bridge-service/build/Dockerfile
     environment:
       EDGE_BRIDGE_HTTP_HOST: 0.0.0.0
       EDGE_BRIDGE_HTTP_PORT: 8081
@@ -106,8 +106,8 @@ services:
 
   device-service:
     build:
-      context: ../services/device-service
-      dockerfile: build/Dockerfile
+      context: ..
+      dockerfile: services/device-service/build/Dockerfile
     environment:
       DEVICE_HTTP_HOST: 0.0.0.0
       DEVICE_HTTP_PORT: 8082
@@ -128,16 +128,16 @@ services:
 
   context-service:
     build:
-      context: ../services/context-service
-      dockerfile: build/Dockerfile
+      context: ..
+      dockerfile: services/context-service/build/Dockerfile
     ports:
       - "8083:8083"
       - "9003:9003"
 
   scenario-service:
     build:
-      context: ../services/scenario-service
-      dockerfile: build/Dockerfile
+      context: ..
+      dockerfile: services/scenario-service/build/Dockerfile
     environment:
       SCENARIO_HTTP_HOST: 0.0.0.0
       SCENARIO_HTTP_PORT: 8084
@@ -163,15 +163,15 @@ services:
 
   voice-service:
     build:
-      context: ../services/voice-service
-      dockerfile: build/Dockerfile
+      context: ..
+      dockerfile: services/voice-service/build/Dockerfile
     environment:
       VOICE_HTTP_HOST: 0.0.0.0
       VOICE_HTTP_PORT: 8085
       VOICE_GRPC_HOST: 0.0.0.0
       VOICE_GRPC_PORT: 9005
       VOICE_SCENARIO_SERVICE_ADDR: scenario-service:9004
-      VOICE_RECOGNITION_MODE: mock
+      VOICE_RECOGNITION_SERVICE_ADDR: host.docker.internal:9010
     ports:
       - "8085:8085"
       - "9005:9005"
@@ -181,16 +181,16 @@ services:
 
   vision-service:
     build:
-      context: ../services/vision-service
-      dockerfile: build/Dockerfile
+      context: ..
+      dockerfile: services/vision-service/build/Dockerfile
     ports:
       - "8086:8086"
       - "9006:9006"
 
   notification-service:
     build:
-      context: ../services/notification-service
-      dockerfile: build/Dockerfile
+      context: ..
+      dockerfile: services/notification-service/build/Dockerfile
     ports:
       - "8087:8087"
       - "9007:9007"
