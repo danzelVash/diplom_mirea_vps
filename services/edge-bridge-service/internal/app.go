@@ -2,12 +2,15 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
+	"net/http"
 
 	"edge-bridge-service/config"
 	edgebridgehandler "edge-bridge-service/internal/app/edge_bridge/v1"
+	bridgeservice "edge-bridge-service/internal/service"
 	edgebridgev1 "edge-bridge-service/pkg/pb/edge_bridge/v1"
 
 	devicev1 "device-service/pkg/pb/device/v1"
@@ -21,10 +24,13 @@ type App struct {
 	cfg          config.Config
 	grpcServer   *grpc.Server
 	grpcListener net.Listener
+	httpServer   *http.Server
+	httpListener net.Listener
 	grpcConn     map[string]*grpc.ClientConn
 
 	deviceClient   devicev1.DeviceServiceClient
 	scenarioClient scenariov1.ScenarioServiceClient
+	service        *bridgeservice.Service
 }
 
 func New() *App {
@@ -39,6 +45,7 @@ func New() *App {
 
 func (a *App) Run(_ context.Context) {
 	edgebridgev1.RegisterEdgeBridgeServiceServer(a.grpcServer, edgebridgehandler.New(
+		a.service,
 		a.deviceClient,
 		a.scenarioClient,
 	))
@@ -50,6 +57,12 @@ func (a *App) Run(_ context.Context) {
 		"grpc_port", a.cfg.GRPC.Port,
 	)
 
+	go func() {
+		if err := a.httpServer.Serve(a.httpListener); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("http server stopped", "service", a.name, "error", err.Error())
+		}
+	}()
+
 	if err := a.grpcServer.Serve(a.grpcListener); err != nil {
 		slog.Error("grpc server stopped", "service", a.name, "error", err.Error())
 	}
@@ -57,4 +70,8 @@ func (a *App) Run(_ context.Context) {
 
 func (a *App) grpcAddr() string {
 	return fmt.Sprintf("%s:%d", a.cfg.GRPC.Host, a.cfg.GRPC.Port)
+}
+
+func (a *App) httpAddr() string {
+	return fmt.Sprintf("%s:%d", a.cfg.HTTP.Host, a.cfg.HTTP.Port)
 }
