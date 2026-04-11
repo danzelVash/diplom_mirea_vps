@@ -89,10 +89,11 @@ func (s *Service) ParseAndExecute(ctx context.Context, req *voicev1.ParseVoiceCo
 	}
 
 	execResponse, err := s.scenario.ExecuteVoiceCommand(ctx, &scenariov1.ExecuteVoiceCommandRequest{
-		EdgeId:      req.GetEdgeId(),
-		RoomId:      req.GetRoomId(),
-		CommandName: recognized,
-		Source:      source,
+		EdgeId:         req.GetEdgeId(),
+		RoomId:         req.GetRoomId(),
+		CommandName:    recognized,
+		Source:         source,
+		DeferExecution: req.GetDeferExecution(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("execute voice command: %w", err)
@@ -130,10 +131,11 @@ func (s *Service) ExecutePhrase(ctx context.Context, phrase, edgeID, roomID, sou
 	}
 
 	execResponse, err := s.scenario.ExecuteVoiceCommand(ctx, &scenariov1.ExecuteVoiceCommandRequest{
-		EdgeId:      edgeID,
-		RoomId:      roomID,
-		CommandName: phrase,
-		Source:      source,
+		EdgeId:         edgeID,
+		RoomId:         roomID,
+		CommandName:    phrase,
+		Source:         source,
+		DeferExecution: false,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("execute phrase: %w", err)

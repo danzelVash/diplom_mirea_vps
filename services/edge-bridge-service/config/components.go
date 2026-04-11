@@ -8,4 +8,5 @@ const (
 const (
 	DeviceService   = "device-service"
 	ScenarioService = "scenario-service"
+	VoiceService    = "voice-service"
 )

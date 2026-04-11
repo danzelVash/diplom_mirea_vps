@@ -214,13 +214,14 @@ func (x *ParsedVoiceCommand) GetDecisionId() string {
 }
 
 type ParseVoiceCommandRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Audio         []byte                 `protobuf:"bytes,1,opt,name=audio,proto3" json:"audio,omitempty"`
-	EdgeId        string                 `protobuf:"bytes,2,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
-	RoomId        string                 `protobuf:"bytes,3,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
-	Source        string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Audio          []byte                 `protobuf:"bytes,1,opt,name=audio,proto3" json:"audio,omitempty"`
+	EdgeId         string                 `protobuf:"bytes,2,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
+	RoomId         string                 `protobuf:"bytes,3,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	Source         string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
+	DeferExecution bool                   `protobuf:"varint,5,opt,name=defer_execution,json=deferExecution,proto3" json:"defer_execution,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ParseVoiceCommandRequest) Reset() {
@@ -279,6 +280,13 @@ func (x *ParseVoiceCommandRequest) GetSource() string {
 		return x.Source
 	}
 	return ""
+}
+
+func (x *ParseVoiceCommandRequest) GetDeferExecution() bool {
+	if x != nil {
+		return x.DeferExecution
+	}
+	return false
 }
 
 type ParseVoiceCommandResponse struct {
@@ -464,12 +472,13 @@ const file_voice_v1_voice_proto_rawDesc = "" +
 	"\rscenario_name\x18\v \x01(\tR\fscenarioName\x12)\n" +
 	"\x10execution_status\x18\f \x01(\tR\x0fexecutionStatus\x12\x1f\n" +
 	"\vdecision_id\x18\r \x01(\tR\n" +
-	"decisionId\"z\n" +
+	"decisionId\"\xa3\x01\n" +
 	"\x18ParseVoiceCommandRequest\x12\x14\n" +
 	"\x05audio\x18\x01 \x01(\fR\x05audio\x12\x17\n" +
 	"\aedge_id\x18\x02 \x01(\tR\x06edgeId\x12\x17\n" +
 	"\aroom_id\x18\x03 \x01(\tR\x06roomId\x12\x16\n" +
-	"\x06source\x18\x04 \x01(\tR\x06source\"S\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\x12'\n" +
+	"\x0fdefer_execution\x18\x05 \x01(\bR\x0edeferExecution\"S\n" +
 	"\x19ParseVoiceCommandResponse\x126\n" +
 	"\acommand\x18\x01 \x01(\v2\x1c.voice.v1.ParsedVoiceCommandR\acommand\"}\n" +
 	"\x19MatchOfflinePhraseRequest\x12\x16\n" +

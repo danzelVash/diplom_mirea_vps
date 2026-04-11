@@ -141,7 +141,7 @@ func (s *Service) ListVoiceCommands(ctx context.Context, edgeID, roomID string) 
 	return commands, nil
 }
 
-func (s *Service) ExecuteVoiceCommand(ctx context.Context, edgeID, roomID, commandName, source string) (model.Scenario, model.Decision, error) {
+func (s *Service) ExecuteVoiceCommand(ctx context.Context, edgeID, roomID, commandName, source string, deferExecution bool) (model.Scenario, model.Decision, error) {
 	if edgeID == "" {
 		return model.Scenario{}, model.Decision{}, fmt.Errorf("edge_id is required")
 	}
@@ -177,7 +177,7 @@ func (s *Service) ExecuteVoiceCommand(ctx context.Context, edgeID, roomID, comma
 		return model.Scenario{}, model.Decision{}, ErrNotFound
 	}
 
-	decision, err := s.executeActions(ctx, selected, "voice:"+source)
+	decision, err := s.executeActions(ctx, selected, "voice:"+source, deferExecution)
 	if err != nil {
 		return model.Scenario{}, model.Decision{}, err
 	}
@@ -185,7 +185,7 @@ func (s *Service) ExecuteVoiceCommand(ctx context.Context, edgeID, roomID, comma
 	return selected, decision, nil
 }
 
-func (s *Service) EvaluateEvent(ctx context.Context, event model.EventEnvelope) (model.Decision, error) {
+func (s *Service) EvaluateEvent(ctx context.Context, event model.EventEnvelope, deferExecution bool) (model.Decision, error) {
 	if event.EventType == "" {
 		return model.Decision{}, fmt.Errorf("event_type is required")
 	}
@@ -229,10 +229,18 @@ func (s *Service) EvaluateEvent(ctx context.Context, event model.EventEnvelope) 
 		return decision, nil
 	}
 
+	if deferExecution {
+		decision.Status = queuedStatus(decision.Actions)
+		if err := s.store.SaveDecision(ctx, event.ID, event.EdgeID, decision); err != nil {
+			return model.Decision{}, err
+		}
+		return decision, nil
+	}
+
 	executedTotal := 0
 	executableTotal := 0
 	for _, scenario := range matchedScenarios {
-		currentDecision, err := s.executeActions(ctx, scenario, "scenario:"+scenario.ID)
+		currentDecision, err := s.executeActions(ctx, scenario, "scenario:"+scenario.ID, false)
 		if err != nil {
 			return model.Decision{}, err
 		}
@@ -247,14 +255,23 @@ func (s *Service) EvaluateEvent(ctx context.Context, event model.EventEnvelope) 
 	return decision, nil
 }
 
-func (s *Service) executeActions(ctx context.Context, scenario model.Scenario, source string) (model.Decision, error) {
+func (s *Service) executeActions(ctx context.Context, scenario model.Scenario, source string, deferExecution bool) (model.Decision, error) {
 	decision := model.Decision{
 		ID:                 newID("decision"),
-		Status:             "matched",
+		Status:             queuedStatus(scenario.Actions),
 		Actions:            append([]model.Action(nil), scenario.Actions...),
 		MatchedScenarioIDs: []string{scenario.ID},
 		CreatedAt:          time.Now().UTC(),
 	}
+
+	if deferExecution {
+		if err := s.store.SaveDecision(ctx, "", scenario.EdgeID, decision); err != nil {
+			return model.Decision{}, err
+		}
+		return decision, nil
+	}
+
+	decision.Status = "matched"
 
 	executable := 0
 	executed := 0
@@ -320,6 +337,9 @@ func matchesTrigger(trigger model.Trigger, event model.EventEnvelope) bool {
 	if trigger.EventType != "" && trigger.EventType != event.EventType {
 		return false
 	}
+	if trigger.DeviceID != "" && trigger.DeviceID != event.DeviceID {
+		return false
+	}
 	if trigger.EntityID != "" && trigger.EntityID != event.EntityID {
 		return false
 	}
@@ -347,6 +367,8 @@ func fieldValue(event model.EventEnvelope, field string) string {
 		return event.EdgeID
 	case "room_id":
 		return event.RoomID
+	case "device_id":
+		return event.DeviceID
 	case "entity_id":
 		return event.EntityID
 	case "event_type":
@@ -427,6 +449,13 @@ func aggregateStatus(executable, executed int) string {
 	default:
 		return "partial"
 	}
+}
+
+func queuedStatus(actions []model.Action) string {
+	if countExecutableActions(actions) > 0 {
+		return "queued"
+	}
+	return "matched"
 }
 
 func normalize(value string) string {

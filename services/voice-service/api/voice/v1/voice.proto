@@ -35,6 +35,7 @@ message ParseVoiceCommandRequest {
   string edge_id = 2;
   string room_id = 3;
   string source = 4;
+  bool defer_execution = 5;
 }
 
 message ParseVoiceCommandResponse {

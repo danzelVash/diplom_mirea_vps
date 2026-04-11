@@ -2,9 +2,12 @@ package httpapi
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
+	"edge-bridge-service/internal/model"
 	bridgeservice "edge-bridge-service/internal/service"
+	edgebridgestore "edge-bridge-service/internal/store"
 	scenariov1 "scenario-service/pkg/pb/scenario/v1"
 )
 
@@ -21,6 +24,7 @@ func New(service *bridgeservice.Service) http.Handler {
 	mux.HandleFunc("POST /api/v1/edges/inventory/sync", h.syncInventory)
 	mux.HandleFunc("POST /api/v1/edges/events", h.publishEvent)
 	mux.HandleFunc("GET /api/v1/edges/{id}/commands", h.pollCommands)
+	mux.HandleFunc("POST /api/v1/edges/{id}/commands/ack", h.ackCommands)
 	mux.HandleFunc("GET /api/v1/edges/{id}/offline-scenarios", h.listOfflineScenarios)
 	mux.HandleFunc("GET /api/v1/edges/{id}/scenarios", h.listScenarios)
 	mux.HandleFunc("GET /api/v1/edges/{id}/voice-commands", h.listVoiceCommands)
@@ -35,7 +39,7 @@ func (h *Handler) health(w http.ResponseWriter, _ *http.Request) {
 
 func (h *Handler) registerEdge(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		Edge bridgeservice.EdgeRegistration `json:"edge"`
+		Edge model.EdgeRegistration `json:"edge"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid json")
@@ -54,7 +58,7 @@ func (h *Handler) registerEdge(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) syncInventory(w http.ResponseWriter, r *http.Request) {
-	var body bridgeservice.InventorySync
+	var body model.InventorySync
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid json")
 		return
@@ -70,7 +74,7 @@ func (h *Handler) syncInventory(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) publishEvent(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		Event bridgeservice.Event `json:"event"`
+		Event model.Event `json:"event"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid json")
@@ -88,10 +92,33 @@ func (h *Handler) publishEvent(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) pollCommands(w http.ResponseWriter, r *http.Request) {
 	commands, err := h.service.PollCommands(r.Context(), r.PathValue("id"))
 	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
+		writeError(w, mapError(err), err.Error())
 		return
 	}
 	writeJSON(w, http.StatusOK, commands)
+}
+
+func (h *Handler) ackCommands(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Commands []model.CommandAck `json:"commands"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+	if len(body.Commands) == 0 {
+		writeError(w, http.StatusBadRequest, "commands are required")
+		return
+	}
+
+	if err := h.service.AckCommands(r.Context(), r.PathValue("id"), body.Commands); err != nil {
+		writeError(w, mapError(err), err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":    "acked",
+		"ack_count": len(body.Commands),
+	})
 }
 
 func (h *Handler) listOfflineScenarios(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +164,11 @@ func (h *Handler) listVoiceCommands(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) edgeStatus(w http.ResponseWriter, r *http.Request) {
-	status, lastEvent, ok := h.service.GetEdgeStatus(r.PathValue("id"))
+	status, lastEvent, ok, err := h.service.GetEdgeStatus(r.Context(), r.PathValue("id"))
+	if err != nil {
+		writeError(w, http.StatusBadGateway, err.Error())
+		return
+	}
 	if !ok {
 		writeError(w, http.StatusNotFound, "edge not found")
 		return
@@ -173,6 +204,7 @@ func mapTriggers(values []*scenariov1.Trigger) []map[string]any {
 		result = append(result, map[string]any{
 			"trigger_type":   trigger.GetTriggerType(),
 			"event_type":     trigger.GetEventType(),
+			"device_id":      trigger.GetDeviceId(),
 			"entity_id":      trigger.GetEntityId(),
 			"expected_state": trigger.GetExpectedState(),
 			"command_name":   trigger.GetCommandName(),
@@ -204,6 +236,15 @@ func mapActions(values []*scenariov1.Action) []map[string]any {
 		})
 	}
 	return result
+}
+
+func mapError(err error) int {
+	switch {
+	case errors.Is(err, edgebridgestore.ErrNotFound):
+		return http.StatusNotFound
+	default:
+		return http.StatusBadRequest
+	}
 }
 
 func writeError(w http.ResponseWriter, code int, message string) {

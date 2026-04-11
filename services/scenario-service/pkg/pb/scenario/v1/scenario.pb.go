@@ -29,6 +29,7 @@ type Trigger struct {
 	EntityId      string                 `protobuf:"bytes,3,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
 	ExpectedState string                 `protobuf:"bytes,4,opt,name=expected_state,json=expectedState,proto3" json:"expected_state,omitempty"`
 	CommandName   string                 `protobuf:"bytes,5,opt,name=command_name,json=commandName,proto3" json:"command_name,omitempty"`
+	DeviceId      string                 `protobuf:"bytes,6,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -94,6 +95,13 @@ func (x *Trigger) GetExpectedState() string {
 func (x *Trigger) GetCommandName() string {
 	if x != nil {
 		return x.CommandName
+	}
+	return ""
+}
+
+func (x *Trigger) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
 	}
 	return ""
 }
@@ -351,6 +359,7 @@ type EventEnvelope struct {
 	EventType     string                 `protobuf:"bytes,5,opt,name=event_type,json=eventType,proto3" json:"event_type,omitempty"`
 	State         string                 `protobuf:"bytes,6,opt,name=state,proto3" json:"state,omitempty"`
 	OccurredAt    *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=occurred_at,json=occurredAt,proto3" json:"occurred_at,omitempty"`
+	DeviceId      string                 `protobuf:"bytes,8,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -432,6 +441,13 @@ func (x *EventEnvelope) GetOccurredAt() *timestamppb.Timestamp {
 		return x.OccurredAt
 	}
 	return nil
+}
+
+func (x *EventEnvelope) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
 }
 
 type Decision struct {
@@ -875,10 +891,11 @@ func (x *SaveScenarioResponse) GetScenario() *Scenario {
 }
 
 type EvaluateEventRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Event         *EventEnvelope         `protobuf:"bytes,1,opt,name=event,proto3" json:"event,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Event          *EventEnvelope         `protobuf:"bytes,1,opt,name=event,proto3" json:"event,omitempty"`
+	DeferExecution bool                   `protobuf:"varint,2,opt,name=defer_execution,json=deferExecution,proto3" json:"defer_execution,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *EvaluateEventRequest) Reset() {
@@ -916,6 +933,13 @@ func (x *EvaluateEventRequest) GetEvent() *EventEnvelope {
 		return x.Event
 	}
 	return nil
+}
+
+func (x *EvaluateEventRequest) GetDeferExecution() bool {
+	if x != nil {
+		return x.DeferExecution
+	}
+	return false
 }
 
 type EvaluateEventResponse struct {
@@ -1147,13 +1171,14 @@ func (x *ListVoiceCommandsResponse) GetCommands() []*VoiceCommand {
 }
 
 type ExecuteVoiceCommandRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EdgeId        string                 `protobuf:"bytes,1,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
-	RoomId        string                 `protobuf:"bytes,2,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
-	CommandName   string                 `protobuf:"bytes,3,opt,name=command_name,json=commandName,proto3" json:"command_name,omitempty"`
-	Source        string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EdgeId         string                 `protobuf:"bytes,1,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
+	RoomId         string                 `protobuf:"bytes,2,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	CommandName    string                 `protobuf:"bytes,3,opt,name=command_name,json=commandName,proto3" json:"command_name,omitempty"`
+	Source         string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
+	DeferExecution bool                   `protobuf:"varint,5,opt,name=defer_execution,json=deferExecution,proto3" json:"defer_execution,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ExecuteVoiceCommandRequest) Reset() {
@@ -1212,6 +1237,13 @@ func (x *ExecuteVoiceCommandRequest) GetSource() string {
 		return x.Source
 	}
 	return ""
+}
+
+func (x *ExecuteVoiceCommandRequest) GetDeferExecution() bool {
+	if x != nil {
+		return x.DeferExecution
+	}
+	return false
 }
 
 type ExecuteVoiceCommandResponse struct {
@@ -1286,14 +1318,15 @@ var File_scenario_v1_scenario_proto protoreflect.FileDescriptor
 
 const file_scenario_v1_scenario_proto_rawDesc = "" +
 	"\n" +
-	"\x1ascenario/v1/scenario.proto\x12\vscenario.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb2\x01\n" +
+	"\x1ascenario/v1/scenario.proto\x12\vscenario.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xcf\x01\n" +
 	"\aTrigger\x12!\n" +
 	"\ftrigger_type\x18\x01 \x01(\tR\vtriggerType\x12\x1d\n" +
 	"\n" +
 	"event_type\x18\x02 \x01(\tR\teventType\x12\x1b\n" +
 	"\tentity_id\x18\x03 \x01(\tR\bentityId\x12%\n" +
 	"\x0eexpected_state\x18\x04 \x01(\tR\rexpectedState\x12!\n" +
-	"\fcommand_name\x18\x05 \x01(\tR\vcommandName\"o\n" +
+	"\fcommand_name\x18\x05 \x01(\tR\vcommandName\x12\x1b\n" +
+	"\tdevice_id\x18\x06 \x01(\tR\bdeviceId\"o\n" +
 	"\tCondition\x12%\n" +
 	"\x0econdition_type\x18\x01 \x01(\tR\rconditionType\x12\x14\n" +
 	"\x05field\x18\x02 \x01(\tR\x05field\x12%\n" +
@@ -1319,7 +1352,7 @@ const file_scenario_v1_scenario_proto_rawDesc = "" +
 	"\aactions\x18\t \x03(\v2\x13.scenario.v1.ActionR\aactions\x129\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xeb\x01\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x88\x02\n" +
 	"\rEventEnvelope\x12\x19\n" +
 	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12\x17\n" +
 	"\aedge_id\x18\x02 \x01(\tR\x06edgeId\x12\x17\n" +
@@ -1329,7 +1362,8 @@ const file_scenario_v1_scenario_proto_rawDesc = "" +
 	"event_type\x18\x05 \x01(\tR\teventType\x12\x14\n" +
 	"\x05state\x18\x06 \x01(\tR\x05state\x12;\n" +
 	"\voccurred_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"occurredAt\"\xa4\x01\n" +
+	"occurredAt\x12\x1b\n" +
+	"\tdevice_id\x18\b \x01(\tR\bdeviceId\"\xa4\x01\n" +
 	"\bDecision\x12\x1f\n" +
 	"\vdecision_id\x18\x01 \x01(\tR\n" +
 	"decisionId\x12\x16\n" +
@@ -1359,9 +1393,10 @@ const file_scenario_v1_scenario_proto_rawDesc = "" +
 	"\x13SaveScenarioRequest\x121\n" +
 	"\bscenario\x18\x01 \x01(\v2\x15.scenario.v1.ScenarioR\bscenario\"I\n" +
 	"\x14SaveScenarioResponse\x121\n" +
-	"\bscenario\x18\x01 \x01(\v2\x15.scenario.v1.ScenarioR\bscenario\"H\n" +
+	"\bscenario\x18\x01 \x01(\v2\x15.scenario.v1.ScenarioR\bscenario\"q\n" +
 	"\x14EvaluateEventRequest\x120\n" +
-	"\x05event\x18\x01 \x01(\v2\x1a.scenario.v1.EventEnvelopeR\x05event\"J\n" +
+	"\x05event\x18\x01 \x01(\v2\x1a.scenario.v1.EventEnvelopeR\x05event\x12'\n" +
+	"\x0fdefer_execution\x18\x02 \x01(\bR\x0edeferExecution\"J\n" +
 	"\x15EvaluateEventResponse\x121\n" +
 	"\bdecision\x18\x01 \x01(\v2\x15.scenario.v1.DecisionR\bdecision\"5\n" +
 	"\x1aGetOfflineScenariosRequest\x12\x17\n" +
@@ -1372,12 +1407,13 @@ const file_scenario_v1_scenario_proto_rawDesc = "" +
 	"\aedge_id\x18\x01 \x01(\tR\x06edgeId\x12\x17\n" +
 	"\aroom_id\x18\x02 \x01(\tR\x06roomId\"R\n" +
 	"\x19ListVoiceCommandsResponse\x125\n" +
-	"\bcommands\x18\x01 \x03(\v2\x19.scenario.v1.VoiceCommandR\bcommands\"\x89\x01\n" +
+	"\bcommands\x18\x01 \x03(\v2\x19.scenario.v1.VoiceCommandR\bcommands\"\xb2\x01\n" +
 	"\x1aExecuteVoiceCommandRequest\x12\x17\n" +
 	"\aedge_id\x18\x01 \x01(\tR\x06edgeId\x12\x17\n" +
 	"\aroom_id\x18\x02 \x01(\tR\x06roomId\x12!\n" +
 	"\fcommand_name\x18\x03 \x01(\tR\vcommandName\x12\x16\n" +
-	"\x06source\x18\x04 \x01(\tR\x06source\"\xae\x01\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\x12'\n" +
+	"\x0fdefer_execution\x18\x05 \x01(\bR\x0edeferExecution\"\xae\x01\n" +
 	"\x1bExecuteVoiceCommandResponse\x12\x1f\n" +
 	"\vscenario_id\x18\x01 \x01(\tR\n" +
 	"scenarioId\x12#\n" +

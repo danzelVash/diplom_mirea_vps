@@ -3,59 +3,47 @@ package v1
 import (
 	"context"
 
-	devicev1 "device-service/pkg/pb/device/v1"
+	"edge-bridge-service/internal/model"
 	bridgeservice "edge-bridge-service/internal/service"
 	edgebridgev1 "edge-bridge-service/pkg/pb/edge_bridge/v1"
-	scenariov1 "scenario-service/pkg/pb/scenario/v1"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Implementation struct {
 	edgebridgev1.UnimplementedEdgeBridgeServiceServer
-	service  *bridgeservice.Service
-	device   externalDeviceClient
-	scenario externalScenarioClient
+	service *bridgeservice.Service
 }
 
-type externalDeviceClient interface {
-	devicev1.DeviceServiceClient
-}
-
-type externalScenarioClient interface {
-	scenariov1.ScenarioServiceClient
-}
-
-func New(service *bridgeservice.Service, device externalDeviceClient, scenario externalScenarioClient) *Implementation {
-	return &Implementation{
-		service:  service,
-		device:   device,
-		scenario: scenario,
-	}
+func New(service *bridgeservice.Service) *Implementation {
+	return &Implementation{service: service}
 }
 
 func (i *Implementation) RegisterEdge(ctx context.Context, req *edgebridgev1.RegisterEdgeRequest) (*edgebridgev1.RegisterEdgeResponse, error) {
-	_, err := i.service.RegisterEdge(ctx, bridgeservice.EdgeRegistration{
+	_, err := i.service.RegisterEdge(ctx, model.EdgeRegistration{
 		EdgeID:     req.GetEdge().GetEdgeId(),
 		Name:       req.GetEdge().GetName(),
 		PublicAddr: req.GetEdge().GetPublicAddr(),
 	})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "register edge: %v", err)
 	}
 	return &edgebridgev1.RegisterEdgeResponse{Status: "registered"}, nil
 }
 
 func (i *Implementation) SyncInventory(ctx context.Context, req *edgebridgev1.SyncInventoryRequest) (*edgebridgev1.SyncInventoryResponse, error) {
-	rooms := make([]bridgeservice.Room, 0, len(req.GetRooms()))
+	rooms := make([]model.Room, 0, len(req.GetRooms()))
 	for _, room := range req.GetRooms() {
-		rooms = append(rooms, bridgeservice.Room{
+		rooms = append(rooms, model.Room{
 			RoomID: room.GetRoomId(),
 			Name:   room.GetName(),
 		})
 	}
 
-	devices := make([]bridgeservice.Device, 0, len(req.GetDevices()))
+	devices := make([]model.Device, 0, len(req.GetDevices()))
 	for _, device := range req.GetDevices() {
-		devices = append(devices, bridgeservice.Device{
+		devices = append(devices, model.Device{
 			DeviceID:   device.GetDeviceId(),
 			RoomID:     device.GetRoomId(),
 			EntityID:   device.GetEntityId(),
@@ -65,19 +53,19 @@ func (i *Implementation) SyncInventory(ctx context.Context, req *edgebridgev1.Sy
 		})
 	}
 
-	syncID, err := i.service.SyncInventory(ctx, bridgeservice.InventorySync{
+	syncID, err := i.service.SyncInventory(ctx, model.InventorySync{
 		EdgeID:  req.GetEdgeId(),
 		Rooms:   rooms,
 		Devices: devices,
 	})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "sync inventory: %v", err)
 	}
 	return &edgebridgev1.SyncInventoryResponse{SyncId: syncID, Status: "synced"}, nil
 }
 
 func (i *Implementation) PublishEvent(ctx context.Context, req *edgebridgev1.PublishEventRequest) (*edgebridgev1.PublishEventResponse, error) {
-	_, err := i.service.PublishEvent(ctx, bridgeservice.Event{
+	result, err := i.service.PublishEvent(ctx, model.Event{
 		EventID:    req.GetEvent().GetEventId(),
 		EdgeID:     req.GetEvent().GetEdgeId(),
 		RoomID:     req.GetEvent().GetRoomId(),
@@ -88,15 +76,15 @@ func (i *Implementation) PublishEvent(ctx context.Context, req *edgebridgev1.Pub
 		OccurredAt: req.GetEvent().GetOccurredAt().AsTime(),
 	})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "publish event: %v", err)
 	}
-	return &edgebridgev1.PublishEventResponse{Status: "accepted"}, nil
+	return &edgebridgev1.PublishEventResponse{Status: result.Status}, nil
 }
 
 func (i *Implementation) PollCommands(ctx context.Context, req *edgebridgev1.PollCommandsRequest) (*edgebridgev1.PollCommandsResponse, error) {
 	commands, err := i.service.PollCommands(ctx, req.GetEdgeId())
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "poll commands: %v", err)
 	}
 
 	response := &edgebridgev1.PollCommandsResponse{
@@ -117,7 +105,7 @@ func (i *Implementation) PollCommands(ctx context.Context, req *edgebridgev1.Pol
 func (i *Implementation) GetOfflineScenarios(ctx context.Context, req *edgebridgev1.GetOfflineScenariosRequest) (*edgebridgev1.GetOfflineScenariosResponse, error) {
 	scenarios, err := i.service.GetOfflineScenarios(ctx, req.GetEdgeId())
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "get offline scenarios: %v", err)
 	}
 
 	response := &edgebridgev1.GetOfflineScenariosResponse{
@@ -131,4 +119,22 @@ func (i *Implementation) GetOfflineScenarios(ctx context.Context, req *edgebridg
 		})
 	}
 	return response, nil
+}
+
+func (i *Implementation) ExecuteVoiceCommand(ctx context.Context, req *edgebridgev1.ExecuteVoiceCommandRequest) (*edgebridgev1.ExecuteVoiceCommandResponse, error) {
+	command, err := i.service.ExecuteVoiceCommand(ctx, req.GetEdgeId(), req.GetRoomId(), req.GetAudio(), req.GetSource())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "execute voice command: %v", err)
+	}
+
+	return &edgebridgev1.ExecuteVoiceCommandResponse{
+		CommandId:         command.GetCommandId(),
+		RecognizedCommand: command.GetRecognizedCommand(),
+		ScenarioId:        command.GetScenarioId(),
+		ScenarioName:      command.GetScenarioName(),
+		DeviceId:          command.GetDeviceId(),
+		EntityId:          command.GetEntityId(),
+		TargetState:       command.GetTargetState(),
+		Status:            command.GetExecutionStatus(),
+	}, nil
 }

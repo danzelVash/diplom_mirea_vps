@@ -1,6 +1,23 @@
 version: "3.9"
 
 services:
+  edge-bridge-postgres:
+    image: postgres:15.10
+    hostname: edge-bridge-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: "edgebridge"
+      POSTGRES_USER: "smarthome"
+      POSTGRES_PASSWORD: "smarthome"
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "edgebridge", "-U", "smarthome"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+
   device-postgres:
     image: postgres:15.10
     hostname: device-postgres
@@ -59,9 +76,33 @@ services:
     build:
       context: ../services/edge-bridge-service
       dockerfile: build/Dockerfile
+    environment:
+      EDGE_BRIDGE_HTTP_HOST: 0.0.0.0
+      EDGE_BRIDGE_HTTP_PORT: 8081
+      EDGE_BRIDGE_GRPC_HOST: 0.0.0.0
+      EDGE_BRIDGE_GRPC_PORT: 9001
+      EDGE_BRIDGE_DB_HOST: edge-bridge-postgres
+      EDGE_BRIDGE_DB_PORT: 5432
+      EDGE_BRIDGE_DB_USER: smarthome
+      EDGE_BRIDGE_DB_PASSWORD: smarthome
+      EDGE_BRIDGE_DB_NAME: edgebridge
+      EDGE_BRIDGE_DB_SSLMODE: disable
+      EDGE_BRIDGE_COMMAND_RETRY_AFTER: 30s
+      EDGE_BRIDGE_DEVICE_SERVICE_ADDR: device-service:9002
+      EDGE_BRIDGE_SCENARIO_SERVICE_ADDR: scenario-service:9004
+      EDGE_BRIDGE_VOICE_SERVICE_ADDR: voice-service:9005
     ports:
       - "8081:8081"
       - "9001:9001"
+    depends_on:
+      edge-bridge-postgres:
+        condition: service_healthy
+      device-service:
+        condition: service_started
+      scenario-service:
+        condition: service_started
+      voice-service:
+        condition: service_started
 
   device-service:
     build:

@@ -12,6 +12,7 @@ service EdgeBridgeService {
   rpc PublishEvent(PublishEventRequest) returns (PublishEventResponse);
   rpc PollCommands(PollCommandsRequest) returns (PollCommandsResponse);
   rpc GetOfflineScenarios(GetOfflineScenariosRequest) returns (GetOfflineScenariosResponse);
+  rpc ExecuteVoiceCommand(ExecuteVoiceCommandRequest) returns (ExecuteVoiceCommandResponse);
 }
 
 message EdgeNode {
@@ -102,3 +103,20 @@ message GetOfflineScenariosResponse {
   repeated OfflineScenario scenarios = 1;
 }
 
+message ExecuteVoiceCommandRequest {
+  bytes audio = 1;
+  string edge_id = 2;
+  string room_id = 3;
+  string source = 4;
+}
+
+message ExecuteVoiceCommandResponse {
+  string command_id = 1;
+  string recognized_command = 2;
+  string scenario_id = 3;
+  string scenario_name = 4;
+  string device_id = 5;
+  string entity_id = 6;
+  string target_state = 7;
+  string status = 8;
+}

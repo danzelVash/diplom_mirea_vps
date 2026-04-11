@@ -918,6 +918,174 @@ func (x *GetOfflineScenariosResponse) GetScenarios() []*OfflineScenario {
 	return nil
 }
 
+type ExecuteVoiceCommandRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Audio         []byte                 `protobuf:"bytes,1,opt,name=audio,proto3" json:"audio,omitempty"`
+	EdgeId        string                 `protobuf:"bytes,2,opt,name=edge_id,json=edgeId,proto3" json:"edge_id,omitempty"`
+	RoomId        string                 `protobuf:"bytes,3,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	Source        string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExecuteVoiceCommandRequest) Reset() {
+	*x = ExecuteVoiceCommandRequest{}
+	mi := &file_edge_bridge_v1_edge_bridge_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExecuteVoiceCommandRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExecuteVoiceCommandRequest) ProtoMessage() {}
+
+func (x *ExecuteVoiceCommandRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_edge_bridge_v1_edge_bridge_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExecuteVoiceCommandRequest.ProtoReflect.Descriptor instead.
+func (*ExecuteVoiceCommandRequest) Descriptor() ([]byte, []int) {
+	return file_edge_bridge_v1_edge_bridge_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ExecuteVoiceCommandRequest) GetAudio() []byte {
+	if x != nil {
+		return x.Audio
+	}
+	return nil
+}
+
+func (x *ExecuteVoiceCommandRequest) GetEdgeId() string {
+	if x != nil {
+		return x.EdgeId
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandRequest) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+type ExecuteVoiceCommandResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	CommandId         string                 `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
+	RecognizedCommand string                 `protobuf:"bytes,2,opt,name=recognized_command,json=recognizedCommand,proto3" json:"recognized_command,omitempty"`
+	ScenarioId        string                 `protobuf:"bytes,3,opt,name=scenario_id,json=scenarioId,proto3" json:"scenario_id,omitempty"`
+	ScenarioName      string                 `protobuf:"bytes,4,opt,name=scenario_name,json=scenarioName,proto3" json:"scenario_name,omitempty"`
+	DeviceId          string                 `protobuf:"bytes,5,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	EntityId          string                 `protobuf:"bytes,6,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
+	TargetState       string                 `protobuf:"bytes,7,opt,name=target_state,json=targetState,proto3" json:"target_state,omitempty"`
+	Status            string                 `protobuf:"bytes,8,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ExecuteVoiceCommandResponse) Reset() {
+	*x = ExecuteVoiceCommandResponse{}
+	mi := &file_edge_bridge_v1_edge_bridge_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExecuteVoiceCommandResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExecuteVoiceCommandResponse) ProtoMessage() {}
+
+func (x *ExecuteVoiceCommandResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_edge_bridge_v1_edge_bridge_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExecuteVoiceCommandResponse.ProtoReflect.Descriptor instead.
+func (*ExecuteVoiceCommandResponse) Descriptor() ([]byte, []int) {
+	return file_edge_bridge_v1_edge_bridge_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ExecuteVoiceCommandResponse) GetCommandId() string {
+	if x != nil {
+		return x.CommandId
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandResponse) GetRecognizedCommand() string {
+	if x != nil {
+		return x.RecognizedCommand
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandResponse) GetScenarioId() string {
+	if x != nil {
+		return x.ScenarioId
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandResponse) GetScenarioName() string {
+	if x != nil {
+		return x.ScenarioName
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandResponse) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandResponse) GetEntityId() string {
+	if x != nil {
+		return x.EntityId
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandResponse) GetTargetState() string {
+	if x != nil {
+		return x.TargetState
+	}
+	return ""
+}
+
+func (x *ExecuteVoiceCommandResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 var File_edge_bridge_v1_edge_bridge_proto protoreflect.FileDescriptor
 
 const file_edge_bridge_v1_edge_bridge_proto_rawDesc = "" +
@@ -985,13 +1153,30 @@ const file_edge_bridge_v1_edge_bridge_proto_rawDesc = "" +
 	"\x1aGetOfflineScenariosRequest\x12\x17\n" +
 	"\aedge_id\x18\x01 \x01(\tR\x06edgeId\"\\\n" +
 	"\x1bGetOfflineScenariosResponse\x12=\n" +
-	"\tscenarios\x18\x01 \x03(\v2\x1f.edge_bridge.v1.OfflineScenarioR\tscenarios2\xf2\x03\n" +
+	"\tscenarios\x18\x01 \x03(\v2\x1f.edge_bridge.v1.OfflineScenarioR\tscenarios\"|\n" +
+	"\x1aExecuteVoiceCommandRequest\x12\x14\n" +
+	"\x05audio\x18\x01 \x01(\fR\x05audio\x12\x17\n" +
+	"\aedge_id\x18\x02 \x01(\tR\x06edgeId\x12\x17\n" +
+	"\aroom_id\x18\x03 \x01(\tR\x06roomId\x12\x16\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\"\xa6\x02\n" +
+	"\x1bExecuteVoiceCommandResponse\x12\x1d\n" +
+	"\n" +
+	"command_id\x18\x01 \x01(\tR\tcommandId\x12-\n" +
+	"\x12recognized_command\x18\x02 \x01(\tR\x11recognizedCommand\x12\x1f\n" +
+	"\vscenario_id\x18\x03 \x01(\tR\n" +
+	"scenarioId\x12#\n" +
+	"\rscenario_name\x18\x04 \x01(\tR\fscenarioName\x12\x1b\n" +
+	"\tdevice_id\x18\x05 \x01(\tR\bdeviceId\x12\x1b\n" +
+	"\tentity_id\x18\x06 \x01(\tR\bentityId\x12!\n" +
+	"\ftarget_state\x18\a \x01(\tR\vtargetState\x12\x16\n" +
+	"\x06status\x18\b \x01(\tR\x06status2\xe2\x04\n" +
 	"\x11EdgeBridgeService\x12Y\n" +
 	"\fRegisterEdge\x12#.edge_bridge.v1.RegisterEdgeRequest\x1a$.edge_bridge.v1.RegisterEdgeResponse\x12\\\n" +
 	"\rSyncInventory\x12$.edge_bridge.v1.SyncInventoryRequest\x1a%.edge_bridge.v1.SyncInventoryResponse\x12Y\n" +
 	"\fPublishEvent\x12#.edge_bridge.v1.PublishEventRequest\x1a$.edge_bridge.v1.PublishEventResponse\x12Y\n" +
 	"\fPollCommands\x12#.edge_bridge.v1.PollCommandsRequest\x1a$.edge_bridge.v1.PollCommandsResponse\x12n\n" +
-	"\x13GetOfflineScenarios\x12*.edge_bridge.v1.GetOfflineScenariosRequest\x1a+.edge_bridge.v1.GetOfflineScenariosResponseB8Z6edge-bridge-service/pkg/pb/edge_bridge/v1;edgebridgev1b\x06proto3"
+	"\x13GetOfflineScenarios\x12*.edge_bridge.v1.GetOfflineScenariosRequest\x1a+.edge_bridge.v1.GetOfflineScenariosResponse\x12n\n" +
+	"\x13ExecuteVoiceCommand\x12*.edge_bridge.v1.ExecuteVoiceCommandRequest\x1a+.edge_bridge.v1.ExecuteVoiceCommandResponseB8Z6edge-bridge-service/pkg/pb/edge_bridge/v1;edgebridgev1b\x06proto3"
 
 var (
 	file_edge_bridge_v1_edge_bridge_proto_rawDescOnce sync.Once
@@ -1005,7 +1190,7 @@ func file_edge_bridge_v1_edge_bridge_proto_rawDescGZIP() []byte {
 	return file_edge_bridge_v1_edge_bridge_proto_rawDescData
 }
 
-var file_edge_bridge_v1_edge_bridge_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_edge_bridge_v1_edge_bridge_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_edge_bridge_v1_edge_bridge_proto_goTypes = []any{
 	(*EdgeNode)(nil),                    // 0: edge_bridge.v1.EdgeNode
 	(*EdgeRoom)(nil),                    // 1: edge_bridge.v1.EdgeRoom
@@ -1023,10 +1208,12 @@ var file_edge_bridge_v1_edge_bridge_proto_goTypes = []any{
 	(*PollCommandsResponse)(nil),        // 13: edge_bridge.v1.PollCommandsResponse
 	(*GetOfflineScenariosRequest)(nil),  // 14: edge_bridge.v1.GetOfflineScenariosRequest
 	(*GetOfflineScenariosResponse)(nil), // 15: edge_bridge.v1.GetOfflineScenariosResponse
-	(*timestamppb.Timestamp)(nil),       // 16: google.protobuf.Timestamp
+	(*ExecuteVoiceCommandRequest)(nil),  // 16: edge_bridge.v1.ExecuteVoiceCommandRequest
+	(*ExecuteVoiceCommandResponse)(nil), // 17: edge_bridge.v1.ExecuteVoiceCommandResponse
+	(*timestamppb.Timestamp)(nil),       // 18: google.protobuf.Timestamp
 }
 var file_edge_bridge_v1_edge_bridge_proto_depIdxs = []int32{
-	16, // 0: edge_bridge.v1.EdgeEvent.occurred_at:type_name -> google.protobuf.Timestamp
+	18, // 0: edge_bridge.v1.EdgeEvent.occurred_at:type_name -> google.protobuf.Timestamp
 	0,  // 1: edge_bridge.v1.RegisterEdgeRequest.edge:type_name -> edge_bridge.v1.EdgeNode
 	1,  // 2: edge_bridge.v1.SyncInventoryRequest.rooms:type_name -> edge_bridge.v1.EdgeRoom
 	2,  // 3: edge_bridge.v1.SyncInventoryRequest.devices:type_name -> edge_bridge.v1.EdgeDevice
@@ -1038,13 +1225,15 @@ var file_edge_bridge_v1_edge_bridge_proto_depIdxs = []int32{
 	10, // 9: edge_bridge.v1.EdgeBridgeService.PublishEvent:input_type -> edge_bridge.v1.PublishEventRequest
 	12, // 10: edge_bridge.v1.EdgeBridgeService.PollCommands:input_type -> edge_bridge.v1.PollCommandsRequest
 	14, // 11: edge_bridge.v1.EdgeBridgeService.GetOfflineScenarios:input_type -> edge_bridge.v1.GetOfflineScenariosRequest
-	7,  // 12: edge_bridge.v1.EdgeBridgeService.RegisterEdge:output_type -> edge_bridge.v1.RegisterEdgeResponse
-	9,  // 13: edge_bridge.v1.EdgeBridgeService.SyncInventory:output_type -> edge_bridge.v1.SyncInventoryResponse
-	11, // 14: edge_bridge.v1.EdgeBridgeService.PublishEvent:output_type -> edge_bridge.v1.PublishEventResponse
-	13, // 15: edge_bridge.v1.EdgeBridgeService.PollCommands:output_type -> edge_bridge.v1.PollCommandsResponse
-	15, // 16: edge_bridge.v1.EdgeBridgeService.GetOfflineScenarios:output_type -> edge_bridge.v1.GetOfflineScenariosResponse
-	12, // [12:17] is the sub-list for method output_type
-	7,  // [7:12] is the sub-list for method input_type
+	16, // 12: edge_bridge.v1.EdgeBridgeService.ExecuteVoiceCommand:input_type -> edge_bridge.v1.ExecuteVoiceCommandRequest
+	7,  // 13: edge_bridge.v1.EdgeBridgeService.RegisterEdge:output_type -> edge_bridge.v1.RegisterEdgeResponse
+	9,  // 14: edge_bridge.v1.EdgeBridgeService.SyncInventory:output_type -> edge_bridge.v1.SyncInventoryResponse
+	11, // 15: edge_bridge.v1.EdgeBridgeService.PublishEvent:output_type -> edge_bridge.v1.PublishEventResponse
+	13, // 16: edge_bridge.v1.EdgeBridgeService.PollCommands:output_type -> edge_bridge.v1.PollCommandsResponse
+	15, // 17: edge_bridge.v1.EdgeBridgeService.GetOfflineScenarios:output_type -> edge_bridge.v1.GetOfflineScenariosResponse
+	17, // 18: edge_bridge.v1.EdgeBridgeService.ExecuteVoiceCommand:output_type -> edge_bridge.v1.ExecuteVoiceCommandResponse
+	13, // [13:19] is the sub-list for method output_type
+	7,  // [7:13] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
@@ -1061,7 +1250,7 @@ func file_edge_bridge_v1_edge_bridge_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_edge_bridge_v1_edge_bridge_proto_rawDesc), len(file_edge_bridge_v1_edge_bridge_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

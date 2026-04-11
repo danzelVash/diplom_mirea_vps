@@ -3,15 +3,30 @@ package service
 import (
 	"context"
 	"fmt"
-	"sync"
+	"math/rand"
 	"time"
 
 	devicev1 "device-service/pkg/pb/device/v1"
+	"edge-bridge-service/internal/model"
+	edgebridgestore "edge-bridge-service/internal/store"
 	scenariov1 "scenario-service/pkg/pb/scenario/v1"
+	voicev1 "voice-service/pkg/pb/voice/v1"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+type Store interface {
+	RegisterEdge(ctx context.Context, req model.EdgeRegistration) (model.EdgeStatus, error)
+	MarkInventorySynced(ctx context.Context, edgeID string) error
+	RecordEvent(ctx context.Context, event model.Event) error
+	EnqueueCommands(ctx context.Context, edgeID string, commands []model.Command) error
+	PollCommands(ctx context.Context, edgeID string, retryAfter time.Duration) ([]model.Command, error)
+	AckCommand(ctx context.Context, edgeID, commandID string) error
+	SetEdgeError(ctx context.Context, edgeID, message string) error
+	GetEdgeStatus(ctx context.Context, edgeID string) (model.EdgeStatus, error)
+	GetLastEvent(ctx context.Context, edgeID string) (model.EventSnapshot, error)
+}
 
 type DeviceClient interface {
 	SyncInventory(ctx context.Context, in *devicev1.SyncInventoryRequest, opts ...grpc.CallOption) (*devicev1.SyncInventoryResponse, error)
@@ -25,129 +40,41 @@ type ScenarioClient interface {
 	ListVoiceCommands(ctx context.Context, in *scenariov1.ListVoiceCommandsRequest, opts ...grpc.CallOption) (*scenariov1.ListVoiceCommandsResponse, error)
 }
 
+type VoiceClient interface {
+	ParseVoiceCommand(ctx context.Context, in *voicev1.ParseVoiceCommandRequest, opts ...grpc.CallOption) (*voicev1.ParseVoiceCommandResponse, error)
+}
+
 type Service struct {
-	device   DeviceClient
-	scenario ScenarioClient
-
-	mu         sync.Mutex
-	edges      map[string]EdgeStatus
-	queues     map[string][]Command
-	lastEvents map[string]EventSnapshot
+	store      Store
+	device     DeviceClient
+	scenario   ScenarioClient
+	voice      VoiceClient
+	retryAfter time.Duration
 }
 
-type EdgeRegistration struct {
-	EdgeID     string `json:"edge_id"`
-	Name       string `json:"name"`
-	PublicAddr string `json:"public_addr"`
-}
-
-type Room struct {
-	RoomID string `json:"room_id"`
-	Name   string `json:"name"`
-	Floor  string `json:"floor,omitempty"`
-}
-
-type Device struct {
-	DeviceID       string    `json:"device_id"`
-	RoomID         string    `json:"room_id,omitempty"`
-	EntityID       string    `json:"entity_id,omitempty"`
-	Name           string    `json:"name"`
-	DeviceType     string    `json:"device_type"`
-	State          string    `json:"state"`
-	OfflineCapable bool      `json:"offline_capable"`
-	UpdatedAt      time.Time `json:"updated_at,omitempty"`
-	Integration    string    `json:"integration,omitempty"`
-	ExternalID     string    `json:"external_id,omitempty"`
-	LastChangedAt  time.Time `json:"last_changed_at,omitempty"`
-}
-
-type InventorySync struct {
-	EdgeID  string   `json:"edge_id"`
-	Rooms   []Room   `json:"rooms"`
-	Devices []Device `json:"devices"`
-}
-
-type Event struct {
-	EventID    string                 `json:"event_id"`
-	EdgeID     string                 `json:"edge_id"`
-	RoomID     string                 `json:"room_id,omitempty"`
-	DeviceID   string                 `json:"device_id,omitempty"`
-	EntityID   string                 `json:"entity_id,omitempty"`
-	EventType  string                 `json:"event_type"`
-	State      string                 `json:"state,omitempty"`
-	OccurredAt time.Time              `json:"occurred_at"`
-	Payload    map[string]interface{} `json:"payload,omitempty"`
-}
-
-type Command struct {
-	CommandID   string    `json:"command_id"`
-	DeviceID    string    `json:"device_id,omitempty"`
-	EntityID    string    `json:"entity_id,omitempty"`
-	TargetState string    `json:"target_state"`
-	Source      string    `json:"source"`
-	CreatedAt   time.Time `json:"created_at"`
-}
-
-type EdgeStatus struct {
-	EdgeID            string    `json:"edge_id"`
-	Name              string    `json:"name"`
-	PublicAddr        string    `json:"public_addr,omitempty"`
-	RegisteredAt      time.Time `json:"registered_at"`
-	LastSeenAt        time.Time `json:"last_seen_at"`
-	LastInventorySync time.Time `json:"last_inventory_sync,omitempty"`
-	LastEventAt       time.Time `json:"last_event_at,omitempty"`
-	LastPollAt        time.Time `json:"last_poll_at,omitempty"`
-	PendingCommands   int       `json:"pending_commands"`
-	LastError         string    `json:"last_error,omitempty"`
-}
-
-type EventResult struct {
-	Status             string   `json:"status"`
-	MatchedScenarioIDs []string `json:"matched_scenario_ids,omitempty"`
-	QueuedCommands     int      `json:"queued_commands"`
-}
-
-func New(device DeviceClient, scenario ScenarioClient) *Service {
+func New(store Store, device DeviceClient, scenario ScenarioClient, voice VoiceClient, retryAfter time.Duration) *Service {
 	return &Service{
+		store:      store,
 		device:     device,
 		scenario:   scenario,
-		edges:      make(map[string]EdgeStatus),
-		queues:     make(map[string][]Command),
-		lastEvents: make(map[string]EventSnapshot),
+		voice:      voice,
+		retryAfter: retryAfter,
 	}
 }
 
-type EventSnapshot struct {
-	EventType  string    `json:"event_type"`
-	State      string    `json:"state,omitempty"`
-	EntityID   string    `json:"entity_id,omitempty"`
-	OccurredAt time.Time `json:"occurred_at"`
-}
-
-func (s *Service) RegisterEdge(ctx context.Context, req EdgeRegistration) (EdgeStatus, error) {
+func (s *Service) RegisterEdge(ctx context.Context, req model.EdgeRegistration) (model.EdgeStatus, error) {
 	if req.EdgeID == "" {
-		return EdgeStatus{}, fmt.Errorf("edge_id is required")
+		return model.EdgeStatus{}, fmt.Errorf("edge_id is required")
 	}
 
-	now := time.Now().UTC()
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	current := s.edges[req.EdgeID]
-	if current.RegisteredAt.IsZero() {
-		current.RegisteredAt = now
+	status, err := s.store.RegisterEdge(ctx, req)
+	if err != nil {
+		return model.EdgeStatus{}, err
 	}
-	current.EdgeID = req.EdgeID
-	current.Name = req.Name
-	current.PublicAddr = req.PublicAddr
-	current.LastSeenAt = now
-	current.PendingCommands = len(s.queues[req.EdgeID])
-	current.LastError = ""
-	s.edges[req.EdgeID] = current
-	return current, nil
+	return status, nil
 }
 
-func (s *Service) SyncInventory(ctx context.Context, req InventorySync) (string, error) {
+func (s *Service) SyncInventory(ctx context.Context, req model.InventorySync) (string, error) {
 	if req.EdgeID == "" {
 		return "", fmt.Errorf("edge_id is required")
 	}
@@ -180,42 +107,34 @@ func (s *Service) SyncInventory(ctx context.Context, req InventorySync) (string,
 		})
 	}
 
-	_, err := s.device.SyncInventory(ctx, &devicev1.SyncInventoryRequest{
+	if _, err := s.device.SyncInventory(ctx, &devicev1.SyncInventoryRequest{
 		EdgeId:  req.EdgeID,
 		Rooms:   rooms,
 		Devices: devices,
-	})
-	if err != nil {
-		s.setEdgeError(req.EdgeID, err)
+	}); err != nil {
+		_ = s.store.SetEdgeError(ctx, req.EdgeID, err.Error())
 		return "", fmt.Errorf("sync inventory: %w", err)
 	}
 
-	s.mu.Lock()
-	status := s.edges[req.EdgeID]
-	status.EdgeID = req.EdgeID
-	status.LastSeenAt = time.Now().UTC()
-	status.LastInventorySync = time.Now().UTC()
-	status.PendingCommands = len(s.queues[req.EdgeID])
-	status.LastError = ""
-	s.edges[req.EdgeID] = status
-	s.mu.Unlock()
-
+	if err := s.store.MarkInventorySynced(ctx, req.EdgeID); err != nil {
+		return "", err
+	}
 	return newID("sync"), nil
 }
 
-func (s *Service) PublishEvent(ctx context.Context, event Event) (EventResult, error) {
+func (s *Service) PublishEvent(ctx context.Context, event model.Event) (model.EventResult, error) {
 	if event.EdgeID == "" {
-		return EventResult{}, fmt.Errorf("edge_id is required")
+		return model.EventResult{}, fmt.Errorf("edge_id is required")
 	}
 	if event.EventType == "" {
-		return EventResult{}, fmt.Errorf("event_type is required")
+		return model.EventResult{}, fmt.Errorf("event_type is required")
 	}
 	if event.OccurredAt.IsZero() {
 		event.OccurredAt = time.Now().UTC()
 	}
 
 	if event.DeviceID != "" || event.EntityID != "" {
-		_, err := s.device.UpsertDeviceState(ctx, &devicev1.UpsertDeviceStateRequest{
+		if _, err := s.device.UpsertDeviceState(ctx, &devicev1.UpsertDeviceStateRequest{
 			EdgeId: event.EdgeID,
 			State: &devicev1.DeviceState{
 				DeviceId:  event.DeviceID,
@@ -223,10 +142,9 @@ func (s *Service) PublishEvent(ctx context.Context, event Event) (EventResult, e
 				State:     event.State,
 				ChangedAt: timestamppb.New(event.OccurredAt.UTC()),
 			},
-		})
-		if err != nil {
-			s.setEdgeError(event.EdgeID, err)
-			return EventResult{}, fmt.Errorf("upsert device state: %w", err)
+		}); err != nil {
+			_ = s.store.SetEdgeError(ctx, event.EdgeID, err.Error())
+			return model.EventResult{}, fmt.Errorf("upsert device state: %w", err)
 		}
 	}
 
@@ -235,62 +153,75 @@ func (s *Service) PublishEvent(ctx context.Context, event Event) (EventResult, e
 			EventId:    event.EventID,
 			EdgeId:     event.EdgeID,
 			RoomId:     event.RoomID,
+			DeviceId:   event.DeviceID,
 			EntityId:   event.EntityID,
 			EventType:  event.EventType,
 			State:      event.State,
 			OccurredAt: timestamppb.New(event.OccurredAt.UTC()),
 		},
+		DeferExecution: true,
 	})
 	if err != nil {
-		s.setEdgeError(event.EdgeID, err)
-		return EventResult{}, fmt.Errorf("evaluate event: %w", err)
+		_ = s.store.SetEdgeError(ctx, event.EdgeID, err.Error())
+		return model.EventResult{}, fmt.Errorf("evaluate event: %w", err)
 	}
 
 	decision := response.GetDecision()
-	queued := s.enqueueDecisionCommands(event.EdgeID, decision, "scenario:"+decision.GetDecisionId())
-
-	s.mu.Lock()
-	status := s.edges[event.EdgeID]
-	status.EdgeID = event.EdgeID
-	status.LastSeenAt = time.Now().UTC()
-	status.LastEventAt = event.OccurredAt.UTC()
-	status.PendingCommands = len(s.queues[event.EdgeID])
-	status.LastError = ""
-	s.edges[event.EdgeID] = status
-	s.lastEvents[event.EdgeID] = EventSnapshot{
-		EventType:  event.EventType,
-		State:      event.State,
-		EntityID:   event.EntityID,
-		OccurredAt: event.OccurredAt.UTC(),
+	queuedCommands := commandsFromDecision(event.EdgeID, decision, "scenario:"+decision.GetDecisionId())
+	if err := s.store.EnqueueCommands(ctx, event.EdgeID, queuedCommands); err != nil {
+		return model.EventResult{}, err
 	}
-	s.mu.Unlock()
+	if err := s.store.RecordEvent(ctx, event); err != nil {
+		return model.EventResult{}, err
+	}
 
-	return EventResult{
+	return model.EventResult{
 		Status:             decision.GetStatus(),
 		MatchedScenarioIDs: append([]string(nil), decision.GetMatchedScenarioIds()...),
-		QueuedCommands:     queued,
+		QueuedCommands:     len(queuedCommands),
 	}, nil
 }
 
-func (s *Service) PollCommands(_ context.Context, edgeID string) ([]Command, error) {
+func (s *Service) PollCommands(ctx context.Context, edgeID string) ([]model.Command, error) {
 	if edgeID == "" {
 		return nil, fmt.Errorf("edge_id is required")
 	}
+	return s.store.PollCommands(ctx, edgeID, s.retryAfter)
+}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (s *Service) AckCommands(ctx context.Context, edgeID string, acks []model.CommandAck) error {
+	if edgeID == "" {
+		return fmt.Errorf("edge_id is required")
+	}
 
-	commands := append([]Command(nil), s.queues[edgeID]...)
-	delete(s.queues, edgeID)
+	for _, ack := range acks {
+		if ack.CommandID == "" {
+			return fmt.Errorf("command_id is required")
+		}
+		if err := s.store.AckCommand(ctx, edgeID, ack.CommandID); err != nil {
+			if err == edgebridgestore.ErrNotFound {
+				return err
+			}
+			return err
+		}
 
-	status := s.edges[edgeID]
-	status.EdgeID = edgeID
-	status.LastSeenAt = time.Now().UTC()
-	status.LastPollAt = time.Now().UTC()
-	status.PendingCommands = 0
-	s.edges[edgeID] = status
-
-	return commands, nil
+		if ack.State == "" || (ack.DeviceID == "" && ack.EntityID == "") {
+			continue
+		}
+		if _, err := s.device.UpsertDeviceState(ctx, &devicev1.UpsertDeviceStateRequest{
+			EdgeId: edgeID,
+			State: &devicev1.DeviceState{
+				DeviceId:  ack.DeviceID,
+				EntityId:  ack.EntityID,
+				State:     ack.State,
+				ChangedAt: timestamppb.Now(),
+			},
+		}); err != nil {
+			_ = s.store.SetEdgeError(ctx, edgeID, err.Error())
+			return fmt.Errorf("ack command state update: %w", err)
+		}
+	}
+	return nil
 }
 
 func (s *Service) GetOfflineScenarios(ctx context.Context, edgeID string) ([]*scenariov1.Scenario, error) {
@@ -299,7 +230,7 @@ func (s *Service) GetOfflineScenarios(ctx context.Context, edgeID string) ([]*sc
 	}
 	response, err := s.scenario.GetOfflineScenarios(ctx, &scenariov1.GetOfflineScenariosRequest{EdgeId: edgeID})
 	if err != nil {
-		s.setEdgeError(edgeID, err)
+		_ = s.store.SetEdgeError(ctx, edgeID, err.Error())
 		return nil, fmt.Errorf("get offline scenarios: %w", err)
 	}
 	return response.GetScenarios(), nil
@@ -311,7 +242,7 @@ func (s *Service) ListScenarios(ctx context.Context, edgeID string) ([]*scenario
 	}
 	response, err := s.scenario.ListScenarios(ctx, &scenariov1.ListScenariosRequest{EdgeId: edgeID})
 	if err != nil {
-		s.setEdgeError(edgeID, err)
+		_ = s.store.SetEdgeError(ctx, edgeID, err.Error())
 		return nil, fmt.Errorf("list scenarios: %w", err)
 	}
 	return response.GetScenarios(), nil
@@ -326,70 +257,103 @@ func (s *Service) ListVoiceCommands(ctx context.Context, edgeID, roomID string) 
 		RoomId: roomID,
 	})
 	if err != nil {
-		s.setEdgeError(edgeID, err)
+		_ = s.store.SetEdgeError(ctx, edgeID, err.Error())
 		return nil, fmt.Errorf("list voice commands: %w", err)
 	}
 	return response.GetCommands(), nil
 }
 
-func (s *Service) GetEdgeStatus(edgeID string) (EdgeStatus, EventSnapshot, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	status, ok := s.edges[edgeID]
-	if !ok {
-		return EdgeStatus{}, EventSnapshot{}, false
+func (s *Service) ExecuteVoiceCommand(ctx context.Context, edgeID, roomID string, audio []byte, source string) (*voicev1.ParsedVoiceCommand, error) {
+	if edgeID == "" {
+		return nil, fmt.Errorf("edge_id is required")
 	}
-	status.PendingCommands = len(s.queues[edgeID])
-	return status, s.lastEvents[edgeID], true
+	if len(audio) == 0 {
+		return nil, fmt.Errorf("audio is required")
+	}
+	if source == "" {
+		source = "edge-bridge-service"
+	}
+
+	response, err := s.voice.ParseVoiceCommand(ctx, &voicev1.ParseVoiceCommandRequest{
+		Audio:          audio,
+		EdgeId:         edgeID,
+		RoomId:         roomID,
+		Source:         source,
+		DeferExecution: true,
+	})
+	if err != nil {
+		_ = s.store.SetEdgeError(ctx, edgeID, err.Error())
+		return nil, fmt.Errorf("parse voice command: %w", err)
+	}
+
+	command := response.GetCommand()
+	if command == nil {
+		return &voicev1.ParsedVoiceCommand{}, nil
+	}
+	if command.GetTargetState() != "" && (command.GetDeviceId() != "" || command.GetEntityId() != "") {
+		queueCommand := model.Command{
+			CommandID:   newID("cmd"),
+			EdgeID:      edgeID,
+			DeviceID:    command.GetDeviceId(),
+			EntityID:    command.GetEntityId(),
+			TargetState: command.GetTargetState(),
+			Source:      "voice:" + source,
+			CreatedAt:   time.Now().UTC(),
+		}
+		if err := s.store.EnqueueCommands(ctx, edgeID, []model.Command{queueCommand}); err != nil {
+			return nil, err
+		}
+		command.CommandId = queueCommand.CommandID
+		command.ExecutionStatus = "queued"
+	}
+	return command, nil
 }
 
-func (s *Service) enqueueDecisionCommands(edgeID string, decision *scenariov1.Decision, defaultSource string) int {
-	if decision == nil {
-		return 0
+func (s *Service) GetEdgeStatus(ctx context.Context, edgeID string) (model.EdgeStatus, model.EventSnapshot, bool, error) {
+	status, err := s.store.GetEdgeStatus(ctx, edgeID)
+	if err != nil {
+		if err == edgebridgestore.ErrNotFound {
+			return model.EdgeStatus{}, model.EventSnapshot{}, false, nil
+		}
+		return model.EdgeStatus{}, model.EventSnapshot{}, false, err
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	lastEvent, err := s.store.GetLastEvent(ctx, edgeID)
+	if err != nil && err != edgebridgestore.ErrNotFound {
+		return model.EdgeStatus{}, model.EventSnapshot{}, false, err
+	}
+	return status, lastEvent, true, nil
+}
 
-	count := 0
+func commandsFromDecision(edgeID string, decision *scenariov1.Decision, defaultSource string) []model.Command {
+	if decision == nil {
+		return nil
+	}
+
+	result := make([]model.Command, 0)
 	for _, action := range decision.GetActions() {
-		actionType := action.GetActionType()
-		if actionType != "" && actionType != "device_command" {
+		if actionType := action.GetActionType(); actionType != "" && actionType != "device_command" {
 			continue
 		}
 		if action.GetTargetState() == "" {
 			continue
 		}
-		s.queues[edgeID] = append(s.queues[edgeID], Command{
+		if action.GetDeviceId() == "" && action.GetEntityId() == "" {
+			continue
+		}
+		result = append(result, model.Command{
 			CommandID:   newID("cmd"),
+			EdgeID:      edgeID,
 			DeviceID:    action.GetDeviceId(),
 			EntityID:    action.GetEntityId(),
 			TargetState: action.GetTargetState(),
 			Source:      defaultSource,
 			CreatedAt:   time.Now().UTC(),
 		})
-		count++
 	}
-
-	status := s.edges[edgeID]
-	status.EdgeID = edgeID
-	status.PendingCommands = len(s.queues[edgeID])
-	s.edges[edgeID] = status
-
-	return count
-}
-
-func (s *Service) setEdgeError(edgeID string, err error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	status := s.edges[edgeID]
-	status.EdgeID = edgeID
-	status.LastSeenAt = time.Now().UTC()
-	status.LastError = err.Error()
-	status.PendingCommands = len(s.queues[edgeID])
-	s.edges[edgeID] = status
+	return result
 }
 
 func newID(prefix string) string {
-	return fmt.Sprintf("%s_%d", prefix, time.Now().UnixNano())
+	return fmt.Sprintf("%s_%d_%06d", prefix, time.Now().UnixNano(), rand.Intn(1000000))
 }

@@ -24,6 +24,7 @@ const (
 	EdgeBridgeService_PublishEvent_FullMethodName        = "/edge_bridge.v1.EdgeBridgeService/PublishEvent"
 	EdgeBridgeService_PollCommands_FullMethodName        = "/edge_bridge.v1.EdgeBridgeService/PollCommands"
 	EdgeBridgeService_GetOfflineScenarios_FullMethodName = "/edge_bridge.v1.EdgeBridgeService/GetOfflineScenarios"
+	EdgeBridgeService_ExecuteVoiceCommand_FullMethodName = "/edge_bridge.v1.EdgeBridgeService/ExecuteVoiceCommand"
 )
 
 // EdgeBridgeServiceClient is the client API for EdgeBridgeService service.
@@ -35,6 +36,7 @@ type EdgeBridgeServiceClient interface {
 	PublishEvent(ctx context.Context, in *PublishEventRequest, opts ...grpc.CallOption) (*PublishEventResponse, error)
 	PollCommands(ctx context.Context, in *PollCommandsRequest, opts ...grpc.CallOption) (*PollCommandsResponse, error)
 	GetOfflineScenarios(ctx context.Context, in *GetOfflineScenariosRequest, opts ...grpc.CallOption) (*GetOfflineScenariosResponse, error)
+	ExecuteVoiceCommand(ctx context.Context, in *ExecuteVoiceCommandRequest, opts ...grpc.CallOption) (*ExecuteVoiceCommandResponse, error)
 }
 
 type edgeBridgeServiceClient struct {
@@ -95,6 +97,16 @@ func (c *edgeBridgeServiceClient) GetOfflineScenarios(ctx context.Context, in *G
 	return out, nil
 }
 
+func (c *edgeBridgeServiceClient) ExecuteVoiceCommand(ctx context.Context, in *ExecuteVoiceCommandRequest, opts ...grpc.CallOption) (*ExecuteVoiceCommandResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExecuteVoiceCommandResponse)
+	err := c.cc.Invoke(ctx, EdgeBridgeService_ExecuteVoiceCommand_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EdgeBridgeServiceServer is the server API for EdgeBridgeService service.
 // All implementations must embed UnimplementedEdgeBridgeServiceServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type EdgeBridgeServiceServer interface {
 	PublishEvent(context.Context, *PublishEventRequest) (*PublishEventResponse, error)
 	PollCommands(context.Context, *PollCommandsRequest) (*PollCommandsResponse, error)
 	GetOfflineScenarios(context.Context, *GetOfflineScenariosRequest) (*GetOfflineScenariosResponse, error)
+	ExecuteVoiceCommand(context.Context, *ExecuteVoiceCommandRequest) (*ExecuteVoiceCommandResponse, error)
 	mustEmbedUnimplementedEdgeBridgeServiceServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedEdgeBridgeServiceServer) PollCommands(context.Context, *PollC
 }
 func (UnimplementedEdgeBridgeServiceServer) GetOfflineScenarios(context.Context, *GetOfflineScenariosRequest) (*GetOfflineScenariosResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOfflineScenarios not implemented")
+}
+func (UnimplementedEdgeBridgeServiceServer) ExecuteVoiceCommand(context.Context, *ExecuteVoiceCommandRequest) (*ExecuteVoiceCommandResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExecuteVoiceCommand not implemented")
 }
 func (UnimplementedEdgeBridgeServiceServer) mustEmbedUnimplementedEdgeBridgeServiceServer() {}
 func (UnimplementedEdgeBridgeServiceServer) testEmbeddedByValue()                           {}
@@ -240,6 +256,24 @@ func _EdgeBridgeService_GetOfflineScenarios_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EdgeBridgeService_ExecuteVoiceCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExecuteVoiceCommandRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EdgeBridgeServiceServer).ExecuteVoiceCommand(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EdgeBridgeService_ExecuteVoiceCommand_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EdgeBridgeServiceServer).ExecuteVoiceCommand(ctx, req.(*ExecuteVoiceCommandRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EdgeBridgeService_ServiceDesc is the grpc.ServiceDesc for EdgeBridgeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var EdgeBridgeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOfflineScenarios",
 			Handler:    _EdgeBridgeService_GetOfflineScenarios_Handler,
+		},
+		{
+			MethodName: "ExecuteVoiceCommand",
+			Handler:    _EdgeBridgeService_ExecuteVoiceCommand_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

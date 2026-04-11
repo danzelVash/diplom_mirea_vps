@@ -15,7 +15,9 @@ import (
 
 	devicev1 "device-service/pkg/pb/device/v1"
 	scenariov1 "scenario-service/pkg/pb/scenario/v1"
+	voicev1 "voice-service/pkg/pb/voice/v1"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 )
 
@@ -27,9 +29,11 @@ type App struct {
 	httpServer   *http.Server
 	httpListener net.Listener
 	grpcConn     map[string]*grpc.ClientConn
+	pool         *pgxpool.Pool
 
 	deviceClient   devicev1.DeviceServiceClient
 	scenarioClient scenariov1.ScenarioServiceClient
+	voiceClient    voicev1.VoiceServiceClient
 	service        *bridgeservice.Service
 }
 
@@ -39,16 +43,14 @@ func New() *App {
 		cfg:      config.LoadDefault(),
 		grpcConn: make(map[string]*grpc.ClientConn),
 	}
-	_ = app.init()
+	if err := app.init(); err != nil {
+		panic(err)
+	}
 	return app
 }
 
 func (a *App) Run(_ context.Context) {
-	edgebridgev1.RegisterEdgeBridgeServiceServer(a.grpcServer, edgebridgehandler.New(
-		a.service,
-		a.deviceClient,
-		a.scenarioClient,
-	))
+	edgebridgev1.RegisterEdgeBridgeServiceServer(a.grpcServer, edgebridgehandler.New(a.service))
 
 	slog.Info("service skeleton started",
 		"service", a.name,

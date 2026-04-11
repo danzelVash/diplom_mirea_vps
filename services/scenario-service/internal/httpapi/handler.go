@@ -99,13 +99,16 @@ func (h *Handler) deleteScenario(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) evaluateEvent(w http.ResponseWriter, r *http.Request) {
-	var event model.EventEnvelope
-	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+	var body struct {
+		model.EventEnvelope
+		DeferExecution bool `json:"defer_execution"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
 
-	decision, err := h.service.EvaluateEvent(r.Context(), event)
+	decision, err := h.service.EvaluateEvent(r.Context(), body.EventEnvelope, body.DeferExecution)
 	if err != nil {
 		writeError(w, mapError(err), err)
 		return
@@ -115,17 +118,18 @@ func (h *Handler) evaluateEvent(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) executeVoiceCommand(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		EdgeID      string `json:"edge_id"`
-		RoomID      string `json:"room_id"`
-		CommandName string `json:"command_name"`
-		Source      string `json:"source"`
+		EdgeID         string `json:"edge_id"`
+		RoomID         string `json:"room_id"`
+		CommandName    string `json:"command_name"`
+		Source         string `json:"source"`
+		DeferExecution bool   `json:"defer_execution"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
 
-	scenario, decision, err := h.service.ExecuteVoiceCommand(r.Context(), body.EdgeID, body.RoomID, body.CommandName, body.Source)
+	scenario, decision, err := h.service.ExecuteVoiceCommand(r.Context(), body.EdgeID, body.RoomID, body.CommandName, body.Source, body.DeferExecution)
 	if err != nil {
 		writeError(w, mapError(err), err)
 		return

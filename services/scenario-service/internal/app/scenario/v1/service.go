@@ -62,7 +62,7 @@ func (i *Implementation) SaveScenario(ctx context.Context, req *scenariov1.SaveS
 }
 
 func (i *Implementation) EvaluateEvent(ctx context.Context, req *scenariov1.EvaluateEventRequest) (*scenariov1.EvaluateEventResponse, error) {
-	decision, err := i.service.EvaluateEvent(ctx, model.EventFromProto(req.GetEvent()))
+	decision, err := i.service.EvaluateEvent(ctx, model.EventFromProto(req.GetEvent()), req.GetDeferExecution())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "evaluate event: %v", err)
 	}
@@ -106,6 +106,7 @@ func (i *Implementation) ExecuteVoiceCommand(ctx context.Context, req *scenariov
 		req.GetRoomId(),
 		req.GetCommandName(),
 		req.GetSource(),
+		req.GetDeferExecution(),
 	)
 	if err != nil {
 		if errorsIsNotFound(err) {

@@ -14,6 +14,7 @@ type Trigger struct {
 	EntityID      string `json:"entity_id"`
 	ExpectedState string `json:"expected_state"`
 	CommandName   string `json:"command_name"`
+	DeviceID      string `json:"device_id"`
 }
 
 func (t Trigger) ToProto() *scenariov1.Trigger {
@@ -23,6 +24,7 @@ func (t Trigger) ToProto() *scenariov1.Trigger {
 		EntityId:      t.EntityID,
 		ExpectedState: t.ExpectedState,
 		CommandName:   t.CommandName,
+		DeviceId:      t.DeviceID,
 	}
 }
 
@@ -89,6 +91,7 @@ type EventEnvelope struct {
 	ID         string    `json:"id"`
 	EdgeID     string    `json:"edge_id"`
 	RoomID     string    `json:"room_id"`
+	DeviceID   string    `json:"device_id"`
 	EntityID   string    `json:"entity_id"`
 	EventType  string    `json:"event_type"`
 	State      string    `json:"state"`
@@ -100,6 +103,7 @@ func (e EventEnvelope) ToProto() *scenariov1.EventEnvelope {
 		EventId:    e.ID,
 		EdgeId:     e.EdgeID,
 		RoomId:     e.RoomID,
+		DeviceId:   e.DeviceID,
 		EntityId:   e.EntityID,
 		EventType:  e.EventType,
 		State:      e.State,
@@ -178,6 +182,7 @@ func EventFromProto(src *scenariov1.EventEnvelope) EventEnvelope {
 		ID:         src.GetEventId(),
 		EdgeID:     src.GetEdgeId(),
 		RoomID:     src.GetRoomId(),
+		DeviceID:   src.GetDeviceId(),
 		EntityID:   src.GetEntityId(),
 		EventType:  src.GetEventType(),
 		State:      src.GetState(),
@@ -218,6 +223,7 @@ func triggersFromProto(values []*scenariov1.Trigger) []Trigger {
 			EntityID:      value.GetEntityId(),
 			ExpectedState: value.GetExpectedState(),
 			CommandName:   value.GetCommandName(),
+			DeviceID:      value.GetDeviceId(),
 		})
 	}
 	return result

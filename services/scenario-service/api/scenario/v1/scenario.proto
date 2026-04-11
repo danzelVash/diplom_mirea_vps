@@ -22,6 +22,7 @@ message Trigger {
   string entity_id = 3;
   string expected_state = 4;
   string command_name = 5;
+  string device_id = 6;
 }
 
 message Condition {
@@ -58,6 +59,7 @@ message EventEnvelope {
   string event_type = 5;
   string state = 6;
   google.protobuf.Timestamp occurred_at = 7;
+  string device_id = 8;
 }
 
 message Decision {
@@ -105,6 +107,7 @@ message SaveScenarioResponse {
 
 message EvaluateEventRequest {
   EventEnvelope event = 1;
+  bool defer_execution = 2;
 }
 
 message EvaluateEventResponse {
@@ -133,6 +136,7 @@ message ExecuteVoiceCommandRequest {
   string room_id = 2;
   string command_name = 3;
   string source = 4;
+  bool defer_execution = 5;
 }
 
 message ExecuteVoiceCommandResponse {
