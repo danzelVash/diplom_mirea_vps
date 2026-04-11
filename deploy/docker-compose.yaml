@@ -1,53 +1,19 @@
-version: "3.9"
-
 services:
-  edge-bridge-postgres:
+  platform-postgres:
     image: postgres:15.10
-    hostname: edge-bridge-postgres
+    hostname: platform-postgres
     restart: always
     environment:
-      POSTGRES_DB: "edgebridge"
-      POSTGRES_USER: "smarthome"
-      POSTGRES_PASSWORD: "smarthome"
-      POSTGRES_HOST_AUTH_METHOD: trust
-    ports:
-      - "5434:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-q", "-d", "edgebridge", "-U", "smarthome"]
-      interval: 2s
-      timeout: 2s
-      retries: 10
-
-  device-postgres:
-    image: postgres:15.10
-    hostname: device-postgres
-    restart: always
-    environment:
-      POSTGRES_DB: "devices"
+      POSTGRES_DB: "postgres"
       POSTGRES_USER: "smarthome"
       POSTGRES_PASSWORD: "smarthome"
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5432:5432"
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "pg_isready", "-q", "-d", "devices", "-U", "smarthome"]
-      interval: 2s
-      timeout: 2s
-      retries: 10
-
-  scenario-postgres:
-    image: postgres:15.10
-    hostname: scenario-postgres
-    restart: always
-    environment:
-      POSTGRES_DB: "scenarios"
-      POSTGRES_USER: "smarthome"
-      POSTGRES_PASSWORD: "smarthome"
-      POSTGRES_HOST_AUTH_METHOD: trust
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-q", "-d", "scenarios", "-U", "smarthome"]
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "smarthome"]
       interval: 2s
       timeout: 2s
       retries: 10
@@ -81,7 +47,7 @@ services:
       EDGE_BRIDGE_HTTP_PORT: 8081
       EDGE_BRIDGE_GRPC_HOST: 0.0.0.0
       EDGE_BRIDGE_GRPC_PORT: 9001
-      EDGE_BRIDGE_DB_HOST: edge-bridge-postgres
+      EDGE_BRIDGE_DB_HOST: platform-postgres
       EDGE_BRIDGE_DB_PORT: 5432
       EDGE_BRIDGE_DB_USER: smarthome
       EDGE_BRIDGE_DB_PASSWORD: smarthome
@@ -95,7 +61,7 @@ services:
       - "8081:8081"
       - "9001:9001"
     depends_on:
-      edge-bridge-postgres:
+      platform-postgres:
         condition: service_healthy
       device-service:
         condition: service_started
@@ -113,7 +79,7 @@ services:
       DEVICE_HTTP_PORT: 8082
       DEVICE_GRPC_HOST: 0.0.0.0
       DEVICE_GRPC_PORT: 9002
-      DEVICE_DB_HOST: device-postgres
+      DEVICE_DB_HOST: platform-postgres
       DEVICE_DB_PORT: 5432
       DEVICE_DB_USER: smarthome
       DEVICE_DB_PASSWORD: smarthome
@@ -123,7 +89,7 @@ services:
       - "8082:8082"
       - "9002:9002"
     depends_on:
-      device-postgres:
+      platform-postgres:
         condition: service_healthy
 
   context-service:
@@ -143,7 +109,7 @@ services:
       SCENARIO_HTTP_PORT: 8084
       SCENARIO_GRPC_HOST: 0.0.0.0
       SCENARIO_GRPC_PORT: 9004
-      SCENARIO_DB_HOST: scenario-postgres
+      SCENARIO_DB_HOST: platform-postgres
       SCENARIO_DB_PORT: 5432
       SCENARIO_DB_USER: smarthome
       SCENARIO_DB_PASSWORD: smarthome
@@ -156,7 +122,7 @@ services:
       - "8084:8084"
       - "9004:9004"
     depends_on:
-      scenario-postgres:
+      platform-postgres:
         condition: service_healthy
       device-service:
         condition: service_started
