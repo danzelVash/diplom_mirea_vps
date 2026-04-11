@@ -23,6 +23,9 @@ func New(service *bridgeservice.Service) http.Handler {
 	mux.HandleFunc("POST /api/v1/edges/register", h.registerEdge)
 	mux.HandleFunc("POST /api/v1/edges/inventory/sync", h.syncInventory)
 	mux.HandleFunc("POST /api/v1/edges/events", h.publishEvent)
+	mux.HandleFunc("GET /api/v1/edges/{id}/rooms", h.listRooms)
+	mux.HandleFunc("GET /api/v1/edges/{id}/devices", h.listDevices)
+	mux.HandleFunc("POST /api/v1/edges/{id}/scenarios", h.saveScenario)
 	mux.HandleFunc("GET /api/v1/edges/{id}/commands", h.pollCommands)
 	mux.HandleFunc("POST /api/v1/edges/{id}/commands/ack", h.ackCommands)
 	mux.HandleFunc("GET /api/v1/edges/{id}/offline-scenarios", h.listOfflineScenarios)
@@ -87,6 +90,67 @@ func (h *Handler) publishEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *Handler) listRooms(w http.ResponseWriter, r *http.Request) {
+	rooms, err := h.service.ListRooms(r.Context(), r.PathValue("id"))
+	if err != nil {
+		writeError(w, http.StatusBadGateway, err.Error())
+		return
+	}
+
+	response := make([]map[string]any, 0, len(rooms))
+	for _, room := range rooms {
+		response = append(response, map[string]any{
+			"room_id": room.GetRoomId(),
+			"name":    room.GetName(),
+			"floor":   room.GetFloor(),
+		})
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (h *Handler) listDevices(w http.ResponseWriter, r *http.Request) {
+	devices, err := h.service.ListDevices(r.Context(), r.PathValue("id"), r.URL.Query().Get("room_id"))
+	if err != nil {
+		writeError(w, http.StatusBadGateway, err.Error())
+		return
+	}
+
+	response := make([]map[string]any, 0, len(devices))
+	for _, device := range devices {
+		var updatedAt any
+		if ts := device.GetUpdatedAt(); ts != nil {
+			updatedAt = ts.AsTime()
+		}
+		response = append(response, map[string]any{
+			"device_id":        device.GetDeviceId(),
+			"edge_id":          device.GetEdgeId(),
+			"room_id":          device.GetRoomId(),
+			"name":             device.GetName(),
+			"device_type":      device.GetDeviceType(),
+			"entity_id":        device.GetEntityId(),
+			"state":            device.GetState(),
+			"offline_capable":  device.GetOfflineCapable(),
+			"updated_at":       updatedAt,
+		})
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (h *Handler) saveScenario(w http.ResponseWriter, r *http.Request) {
+	var draft model.RemoteScenarioDraft
+	if err := json.NewDecoder(r.Body).Decode(&draft); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+
+	scenario, err := h.service.SaveScenario(r.Context(), r.PathValue("id"), draft)
+	if err != nil {
+		writeError(w, http.StatusBadGateway, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, mapScenario(scenario))
 }
 
 func (h *Handler) pollCommands(w http.ResponseWriter, r *http.Request) {
@@ -182,20 +246,24 @@ func (h *Handler) edgeStatus(w http.ResponseWriter, r *http.Request) {
 func mapScenarios(values []*scenariov1.Scenario) []map[string]any {
 	result := make([]map[string]any, 0, len(values))
 	for _, scenario := range values {
-		result = append(result, map[string]any{
-			"id":               scenario.GetScenarioId(),
-			"edge_id":          scenario.GetEdgeId(),
-			"name":             scenario.GetName(),
-			"enabled":          scenario.GetEnabled(),
-			"priority":         scenario.GetPriority(),
-			"offline_eligible": scenario.GetOfflineEligible(),
-			"triggers":         mapTriggers(scenario.GetTriggers()),
-			"conditions":       mapConditions(scenario.GetConditions()),
-			"actions":          mapActions(scenario.GetActions()),
-			"updated_at":       scenario.GetUpdatedAt().AsTime(),
-		})
+		result = append(result, mapScenario(scenario))
 	}
 	return result
+}
+
+func mapScenario(scenario *scenariov1.Scenario) map[string]any {
+	return map[string]any{
+		"id":               scenario.GetScenarioId(),
+		"edge_id":          scenario.GetEdgeId(),
+		"name":             scenario.GetName(),
+		"enabled":          scenario.GetEnabled(),
+		"priority":         scenario.GetPriority(),
+		"offline_eligible": scenario.GetOfflineEligible(),
+		"triggers":         mapTriggers(scenario.GetTriggers()),
+		"conditions":       mapConditions(scenario.GetConditions()),
+		"actions":          mapActions(scenario.GetActions()),
+		"updated_at":       scenario.GetUpdatedAt().AsTime(),
+	}
 }
 
 func mapTriggers(values []*scenariov1.Trigger) []map[string]any {

@@ -137,7 +137,7 @@ func (s *Store) DeleteRoom(ctx context.Context, id string) error {
 
 func (s *Store) ListDevices(ctx context.Context, edgeID, roomID string) ([]model.Device, error) {
 	query := `
-SELECT device_id, edge_id, room_id, name, device_type, entity_id, state, offline_capable, last_changed_at, updated_at
+SELECT device_id, edge_id, COALESCE(room_id, ''), name, device_type, entity_id, state, offline_capable, last_changed_at, updated_at
 FROM device_devices`
 	clauses := make([]string, 0, 2)
 	args := make([]any, 0, 2)
@@ -185,7 +185,7 @@ FROM device_devices`
 func (s *Store) GetDevice(ctx context.Context, id string) (model.Device, error) {
 	var device model.Device
 	err := s.pool.QueryRow(ctx, `
-SELECT device_id, edge_id, room_id, name, device_type, entity_id, state, offline_capable, last_changed_at, updated_at
+SELECT device_id, edge_id, COALESCE(room_id, ''), name, device_type, entity_id, state, offline_capable, last_changed_at, updated_at
 FROM device_devices WHERE device_id = $1
 `, id).Scan(
 		&device.ID,

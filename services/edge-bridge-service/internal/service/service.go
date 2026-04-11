@@ -29,6 +29,8 @@ type Store interface {
 }
 
 type DeviceClient interface {
+	ListRooms(ctx context.Context, in *devicev1.ListRoomsRequest, opts ...grpc.CallOption) (*devicev1.ListRoomsResponse, error)
+	ListDevices(ctx context.Context, in *devicev1.ListDevicesRequest, opts ...grpc.CallOption) (*devicev1.ListDevicesResponse, error)
 	SyncInventory(ctx context.Context, in *devicev1.SyncInventoryRequest, opts ...grpc.CallOption) (*devicev1.SyncInventoryResponse, error)
 	UpsertDeviceState(ctx context.Context, in *devicev1.UpsertDeviceStateRequest, opts ...grpc.CallOption) (*devicev1.UpsertDeviceStateResponse, error)
 }
@@ -37,6 +39,7 @@ type ScenarioClient interface {
 	EvaluateEvent(ctx context.Context, in *scenariov1.EvaluateEventRequest, opts ...grpc.CallOption) (*scenariov1.EvaluateEventResponse, error)
 	GetOfflineScenarios(ctx context.Context, in *scenariov1.GetOfflineScenariosRequest, opts ...grpc.CallOption) (*scenariov1.GetOfflineScenariosResponse, error)
 	ListScenarios(ctx context.Context, in *scenariov1.ListScenariosRequest, opts ...grpc.CallOption) (*scenariov1.ListScenariosResponse, error)
+	SaveScenario(ctx context.Context, in *scenariov1.SaveScenarioRequest, opts ...grpc.CallOption) (*scenariov1.SaveScenarioResponse, error)
 	ListVoiceCommands(ctx context.Context, in *scenariov1.ListVoiceCommandsRequest, opts ...grpc.CallOption) (*scenariov1.ListVoiceCommandsResponse, error)
 }
 
@@ -246,6 +249,89 @@ func (s *Service) ListScenarios(ctx context.Context, edgeID string) ([]*scenario
 		return nil, fmt.Errorf("list scenarios: %w", err)
 	}
 	return response.GetScenarios(), nil
+}
+
+func (s *Service) ListRooms(ctx context.Context, edgeID string) ([]*devicev1.Room, error) {
+	if edgeID == "" {
+		return nil, fmt.Errorf("edge_id is required")
+	}
+	response, err := s.device.ListRooms(ctx, &devicev1.ListRoomsRequest{EdgeId: edgeID})
+	if err != nil {
+		_ = s.store.SetEdgeError(ctx, edgeID, err.Error())
+		return nil, fmt.Errorf("list rooms: %w", err)
+	}
+	return response.GetRooms(), nil
+}
+
+func (s *Service) ListDevices(ctx context.Context, edgeID, roomID string) ([]*devicev1.Device, error) {
+	if edgeID == "" {
+		return nil, fmt.Errorf("edge_id is required")
+	}
+	response, err := s.device.ListDevices(ctx, &devicev1.ListDevicesRequest{
+		EdgeId: edgeID,
+		RoomId: roomID,
+	})
+	if err != nil {
+		_ = s.store.SetEdgeError(ctx, edgeID, err.Error())
+		return nil, fmt.Errorf("list devices: %w", err)
+	}
+	return response.GetDevices(), nil
+}
+
+func (s *Service) SaveScenario(ctx context.Context, edgeID string, draft model.RemoteScenarioDraft) (*scenariov1.Scenario, error) {
+	if edgeID == "" {
+		return nil, fmt.Errorf("edge_id is required")
+	}
+	if draft.Name == "" {
+		return nil, fmt.Errorf("name is required")
+	}
+	if draft.CommandName == "" {
+		return nil, fmt.Errorf("command_name is required")
+	}
+	if draft.TargetState == "" {
+		return nil, fmt.Errorf("target_state is required")
+	}
+	if draft.DeviceID == "" && draft.EntityID == "" {
+		return nil, fmt.Errorf("device_id or entity_id is required")
+	}
+
+	scenario := &scenariov1.Scenario{
+		EdgeId:          edgeID,
+		Name:            draft.Name,
+		Enabled:         draft.Enabled,
+		Priority:        draft.Priority,
+		OfflineEligible: draft.OfflineEligible,
+		Triggers: []*scenariov1.Trigger{
+			{
+				TriggerType: "voice_command",
+				CommandName: draft.CommandName,
+			},
+		},
+		Actions: []*scenariov1.Action{
+			{
+				ActionType:  "device_command",
+				DeviceId:    draft.DeviceID,
+				EntityId:    draft.EntityID,
+				TargetState: draft.TargetState,
+			},
+		},
+	}
+	if draft.RoomID != "" {
+		scenario.Conditions = []*scenariov1.Condition{
+			{
+				ConditionType: "equals",
+				Field:         "room_id",
+				ExpectedValue: draft.RoomID,
+			},
+		}
+	}
+
+	response, err := s.scenario.SaveScenario(ctx, &scenariov1.SaveScenarioRequest{Scenario: scenario})
+	if err != nil {
+		_ = s.store.SetEdgeError(ctx, edgeID, err.Error())
+		return nil, fmt.Errorf("save scenario: %w", err)
+	}
+	return response.GetScenario(), nil
 }
 
 func (s *Service) ListVoiceCommands(ctx context.Context, edgeID, roomID string) ([]*scenariov1.VoiceCommand, error) {

@@ -34,6 +34,18 @@ type InventorySync struct {
 	Devices []Device `json:"devices"`
 }
 
+type RemoteScenarioDraft struct {
+	Name            string `json:"name"`
+	CommandName     string `json:"command_name"`
+	RoomID          string `json:"room_id,omitempty"`
+	DeviceID        string `json:"device_id,omitempty"`
+	EntityID        string `json:"entity_id,omitempty"`
+	TargetState     string `json:"target_state"`
+	Priority        int32  `json:"priority"`
+	Enabled         bool   `json:"enabled"`
+	OfflineEligible bool   `json:"offline_eligible"`
+}
+
 type Event struct {
 	EventID    string                 `json:"event_id"`
 	EdgeID     string                 `json:"edge_id"`
