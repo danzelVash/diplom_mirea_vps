@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package voice_recognition.v1;
+
+service VoiceRecognitionService {
+  rpc GetAudio(GetAudioRequest) returns (GetAudioResponse);
+}
+
+message GetAudioRequest {
+  bytes chunk = 1;
+  repeated Command commands = 2;
+
+  message Command {
+    string name = 1;
+  }
+}
+
+message GetAudioResponse {
+  string command = 1;
+}

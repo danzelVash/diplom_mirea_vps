@@ -161,6 +161,18 @@ services:
       device-service:
         condition: service_started
 
+  voice-recognition-service:
+    build:
+      context: ..
+      dockerfile: services/voice-recognition-service/build/Dockerfile
+    environment:
+      VOICE_RECOGNITION_GRPC_PORT: 9010
+      VOICE_RECOGNITION_ASR_MODEL: artyomboyko/whisper-small-ru-v2
+      VOICE_RECOGNITION_EMBEDDING_MODEL: all-MiniLM-L6-v2
+      VOICE_RECOGNITION_SIMILARITY_THRESHOLD: 0.0
+    ports:
+      - "9010:9010"
+
   voice-service:
     build:
       context: ..
@@ -171,12 +183,14 @@ services:
       VOICE_GRPC_HOST: 0.0.0.0
       VOICE_GRPC_PORT: 9005
       VOICE_SCENARIO_SERVICE_ADDR: scenario-service:9004
-      VOICE_RECOGNITION_SERVICE_ADDR: host.docker.internal:9010
+      VOICE_RECOGNITION_SERVICE_ADDR: voice-recognition-service:9010
     ports:
       - "8085:8085"
       - "9005:9005"
     depends_on:
       scenario-service:
+        condition: service_started
+      voice-recognition-service:
         condition: service_started
 
   vision-service:
