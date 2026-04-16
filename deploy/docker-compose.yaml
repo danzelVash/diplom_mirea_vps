@@ -18,79 +18,36 @@ services:
       timeout: 2s
       retries: 10
 
-  api-gateway:
+  platform-service:
     build:
       context: ..
-      dockerfile: services/api-gateway/build/Dockerfile
+      dockerfile: services/platform-service/build/Dockerfile
     environment:
-      API_GATEWAY_HTTP_HOST: 0.0.0.0
-      API_GATEWAY_HTTP_PORT: 8080
-      API_GATEWAY_GRPC_HOST: 0.0.0.0
-      API_GATEWAY_GRPC_PORT: 9000
-      API_GATEWAY_EDGE_BRIDGE_ADDR: edge-bridge-service:9001
-      API_GATEWAY_DEVICE_ADDR: device-service:9002
-      API_GATEWAY_CONTEXT_ADDR: context-service:9003
-      API_GATEWAY_SCENARIO_ADDR: scenario-service:9004
-      API_GATEWAY_VOICE_ADDR: voice-service:9005
-      API_GATEWAY_VISION_ADDR: vision-service:9006
-      API_GATEWAY_NOTIFICATION_ADDR: notification-service:9007
+      PLATFORM_HTTP_HOST: 0.0.0.0
+      PLATFORM_HTTP_PORT: 8080
+      PLATFORM_GRPC_HOST: 0.0.0.0
+      PLATFORM_GRPC_PORT: 9000
+      PLATFORM_DB_HOST: platform-postgres
+      PLATFORM_DB_PORT: 5432
+      PLATFORM_DB_USER: smarthome
+      PLATFORM_DB_PASSWORD: smarthome
+      PLATFORM_DB_NAME: smarthome
+      PLATFORM_DB_SSLMODE: disable
+      PLATFORM_COMMAND_RETRY_AFTER: 30s
+      PLATFORM_VOICE_RECOGNITION_ADDR: voice-recognition-service:9010
     ports:
       - "8080:8080"
+      - "8081:8080"
       - "9000:9000"
-
-  edge-bridge-service:
-    build:
-      context: ..
-      dockerfile: services/edge-bridge-service/build/Dockerfile
-    environment:
-      EDGE_BRIDGE_HTTP_HOST: 0.0.0.0
-      EDGE_BRIDGE_HTTP_PORT: 8081
-      EDGE_BRIDGE_GRPC_HOST: 0.0.0.0
-      EDGE_BRIDGE_GRPC_PORT: 9001
-      EDGE_BRIDGE_DB_HOST: platform-postgres
-      EDGE_BRIDGE_DB_PORT: 5432
-      EDGE_BRIDGE_DB_USER: smarthome
-      EDGE_BRIDGE_DB_PASSWORD: smarthome
-      EDGE_BRIDGE_DB_NAME: edgebridge
-      EDGE_BRIDGE_DB_SSLMODE: disable
-      EDGE_BRIDGE_COMMAND_RETRY_AFTER: 30s
-      EDGE_BRIDGE_DEVICE_SERVICE_ADDR: device-service:9002
-      EDGE_BRIDGE_SCENARIO_SERVICE_ADDR: scenario-service:9004
-      EDGE_BRIDGE_VOICE_SERVICE_ADDR: voice-service:9005
-    ports:
-      - "8081:8081"
-      - "9001:9001"
+      - "9001:9000"
+      - "9002:9000"
+      - "9004:9000"
+      - "9005:9000"
     depends_on:
       platform-postgres:
         condition: service_healthy
-      device-service:
+      voice-recognition-service:
         condition: service_started
-      scenario-service:
-        condition: service_started
-      voice-service:
-        condition: service_started
-
-  device-service:
-    build:
-      context: ..
-      dockerfile: services/device-service/build/Dockerfile
-    environment:
-      DEVICE_HTTP_HOST: 0.0.0.0
-      DEVICE_HTTP_PORT: 8082
-      DEVICE_GRPC_HOST: 0.0.0.0
-      DEVICE_GRPC_PORT: 9002
-      DEVICE_DB_HOST: platform-postgres
-      DEVICE_DB_PORT: 5432
-      DEVICE_DB_USER: smarthome
-      DEVICE_DB_PASSWORD: smarthome
-      DEVICE_DB_NAME: devices
-      DEVICE_DB_SSLMODE: disable
-    ports:
-      - "8082:8082"
-      - "9002:9002"
-    depends_on:
-      platform-postgres:
-        condition: service_healthy
 
   context-service:
     build:
@@ -99,33 +56,6 @@ services:
     ports:
       - "8083:8083"
       - "9003:9003"
-
-  scenario-service:
-    build:
-      context: ..
-      dockerfile: services/scenario-service/build/Dockerfile
-    environment:
-      SCENARIO_HTTP_HOST: 0.0.0.0
-      SCENARIO_HTTP_PORT: 8084
-      SCENARIO_GRPC_HOST: 0.0.0.0
-      SCENARIO_GRPC_PORT: 9004
-      SCENARIO_DB_HOST: platform-postgres
-      SCENARIO_DB_PORT: 5432
-      SCENARIO_DB_USER: smarthome
-      SCENARIO_DB_PASSWORD: smarthome
-      SCENARIO_DB_NAME: scenarios
-      SCENARIO_DB_SSLMODE: disable
-      SCENARIO_DEVICE_SERVICE_ADDR: device-service:9002
-      SCENARIO_CONTEXT_SERVICE_ADDR: context-service:9003
-      SCENARIO_NOTIFICATION_SERVICE_ADDR: notification-service:9007
-    ports:
-      - "8084:8084"
-      - "9004:9004"
-    depends_on:
-      platform-postgres:
-        condition: service_healthy
-      device-service:
-        condition: service_started
 
   voice-recognition-service:
     build:
@@ -138,26 +68,6 @@ services:
       VOICE_RECOGNITION_SIMILARITY_THRESHOLD: 0.0
     ports:
       - "9010:9010"
-
-  voice-service:
-    build:
-      context: ..
-      dockerfile: services/voice-service/build/Dockerfile
-    environment:
-      VOICE_HTTP_HOST: 0.0.0.0
-      VOICE_HTTP_PORT: 8085
-      VOICE_GRPC_HOST: 0.0.0.0
-      VOICE_GRPC_PORT: 9005
-      VOICE_SCENARIO_SERVICE_ADDR: scenario-service:9004
-      VOICE_RECOGNITION_SERVICE_ADDR: voice-recognition-service:9010
-    ports:
-      - "8085:8085"
-      - "9005:9005"
-    depends_on:
-      scenario-service:
-        condition: service_started
-      voice-recognition-service:
-        condition: service_started
 
   vision-service:
     build:

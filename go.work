@@ -3,12 +3,8 @@ go 1.24.0
 toolchain go1.24.4
 
 use (
-	./services/api-gateway
-	./services/edge-bridge-service
-	./services/device-service
 	./services/context-service
-	./services/scenario-service
-	./services/voice-service
+	./services/platform-service
 	./services/vision-service
 	./services/notification-service
 )
