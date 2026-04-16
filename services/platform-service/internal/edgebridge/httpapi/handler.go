@@ -26,6 +26,7 @@ func New(service *bridgeservice.Service) http.Handler {
 	mux.HandleFunc("GET /api/v1/edges/{id}/rooms", h.listRooms)
 	mux.HandleFunc("GET /api/v1/edges/{id}/devices", h.listDevices)
 	mux.HandleFunc("POST /api/v1/edges/{id}/scenarios", h.saveScenario)
+	mux.HandleFunc("POST /api/v1/edges/{id}/scenarios/{scenario_id}/execute", h.executeScenario)
 	mux.HandleFunc("GET /api/v1/edges/{id}/commands", h.pollCommands)
 	mux.HandleFunc("POST /api/v1/edges/{id}/commands/ack", h.ackCommands)
 	mux.HandleFunc("GET /api/v1/edges/{id}/offline-scenarios", h.listOfflineScenarios)
@@ -151,6 +152,19 @@ func (h *Handler) saveScenario(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, mapScenario(scenario))
+}
+
+func (h *Handler) executeScenario(w http.ResponseWriter, r *http.Request) {
+	scenario, queued, err := h.service.ExecuteScenario(r.Context(), r.PathValue("id"), r.PathValue("scenario_id"), "ui")
+	if err != nil {
+		writeError(w, mapError(err), err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":          "queued",
+		"queued_commands": queued,
+		"scenario":        mapScenario(scenario),
+	})
 }
 
 func (h *Handler) pollCommands(w http.ResponseWriter, r *http.Request) {

@@ -35,15 +35,22 @@ type InventorySync struct {
 }
 
 type RemoteScenarioDraft struct {
-	Name            string `json:"name"`
-	CommandName     string `json:"command_name"`
-	RoomID          string `json:"room_id,omitempty"`
-	DeviceID        string `json:"device_id,omitempty"`
-	EntityID        string `json:"entity_id,omitempty"`
-	TargetState     string `json:"target_state"`
-	Priority        int32  `json:"priority"`
-	Enabled         bool   `json:"enabled"`
-	OfflineEligible bool   `json:"offline_eligible"`
+	Name            string                 `json:"name"`
+	CommandName     string                 `json:"command_name"`
+	RoomID          string                 `json:"room_id,omitempty"`
+	DeviceID        string                 `json:"device_id,omitempty"`
+	EntityID        string                 `json:"entity_id,omitempty"`
+	TargetState     string                 `json:"target_state,omitempty"`
+	Priority        int32                  `json:"priority"`
+	Enabled         bool                   `json:"enabled"`
+	OfflineEligible *bool                  `json:"offline_eligible,omitempty"`
+	Actions         []RemoteScenarioAction `json:"actions,omitempty"`
+}
+
+type RemoteScenarioAction struct {
+	DeviceID    string `json:"device_id,omitempty"`
+	EntityID    string `json:"entity_id,omitempty"`
+	TargetState string `json:"target_state"`
 }
 
 type Event struct {
@@ -61,6 +68,7 @@ type Event struct {
 type Command struct {
 	CommandID   string    `json:"command_id"`
 	EdgeID      string    `json:"edge_id,omitempty"`
+	ScenarioID  string    `json:"scenario_id,omitempty"`
 	DeviceID    string    `json:"device_id,omitempty"`
 	EntityID    string    `json:"entity_id,omitempty"`
 	TargetState string    `json:"target_state"`

@@ -288,11 +288,39 @@ func (s *Service) SaveScenario(ctx context.Context, edgeID string, draft model.R
 	if draft.CommandName == "" {
 		return nil, fmt.Errorf("command_name is required")
 	}
-	if draft.TargetState == "" {
-		return nil, fmt.Errorf("target_state is required")
+	offlineEligible := true
+	if draft.OfflineEligible != nil {
+		offlineEligible = *draft.OfflineEligible
 	}
-	if draft.DeviceID == "" && draft.EntityID == "" {
-		return nil, fmt.Errorf("device_id or entity_id is required")
+
+	actions := make([]*scenariov1.Action, 0, len(draft.Actions))
+	for index, action := range draft.Actions {
+		if action.TargetState == "" {
+			return nil, fmt.Errorf("actions[%d].target_state is required", index)
+		}
+		if action.DeviceID == "" && action.EntityID == "" {
+			return nil, fmt.Errorf("actions[%d].device_id or entity_id is required", index)
+		}
+		actions = append(actions, &scenariov1.Action{
+			ActionType:  "device_command",
+			DeviceId:    action.DeviceID,
+			EntityId:    action.EntityID,
+			TargetState: action.TargetState,
+		})
+	}
+	if len(actions) == 0 {
+		if draft.TargetState == "" {
+			return nil, fmt.Errorf("target_state is required")
+		}
+		if draft.DeviceID == "" && draft.EntityID == "" {
+			return nil, fmt.Errorf("device_id or entity_id is required")
+		}
+		actions = append(actions, &scenariov1.Action{
+			ActionType:  "device_command",
+			DeviceId:    draft.DeviceID,
+			EntityId:    draft.EntityID,
+			TargetState: draft.TargetState,
+		})
 	}
 
 	scenario := &scenariov1.Scenario{
@@ -300,21 +328,14 @@ func (s *Service) SaveScenario(ctx context.Context, edgeID string, draft model.R
 		Name:            draft.Name,
 		Enabled:         draft.Enabled,
 		Priority:        draft.Priority,
-		OfflineEligible: draft.OfflineEligible,
+		OfflineEligible: offlineEligible,
 		Triggers: []*scenariov1.Trigger{
 			{
 				TriggerType: "voice_command",
 				CommandName: draft.CommandName,
 			},
 		},
-		Actions: []*scenariov1.Action{
-			{
-				ActionType:  "device_command",
-				DeviceId:    draft.DeviceID,
-				EntityId:    draft.EntityID,
-				TargetState: draft.TargetState,
-			},
-		},
+		Actions: actions,
 	}
 	if draft.RoomID != "" {
 		scenario.Conditions = []*scenariov1.Condition{
@@ -349,6 +370,43 @@ func (s *Service) ListVoiceCommands(ctx context.Context, edgeID, roomID string) 
 	return response.GetCommands(), nil
 }
 
+func (s *Service) ExecuteScenario(ctx context.Context, edgeID, scenarioID, source string) (*scenariov1.Scenario, int, error) {
+	if edgeID == "" {
+		return nil, 0, fmt.Errorf("edge_id is required")
+	}
+	if scenarioID == "" {
+		return nil, 0, fmt.Errorf("scenario_id is required")
+	}
+	if source == "" {
+		source = "manual"
+	}
+
+	scenarios, err := s.ListScenarios(ctx, edgeID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var scenario *scenariov1.Scenario
+	for _, item := range scenarios {
+		if item.GetScenarioId() == scenarioID {
+			scenario = item
+			break
+		}
+	}
+	if scenario == nil {
+		return nil, 0, edgebridgestore.ErrNotFound
+	}
+
+	queuedCommands := commandsForScenario(edgeID, scenarioID, "scenario:"+source)
+	if len(queuedCommands) == 0 {
+		return scenario, 0, nil
+	}
+	if err := s.store.EnqueueCommands(ctx, edgeID, queuedCommands); err != nil {
+		return nil, 0, err
+	}
+	return scenario, len(queuedCommands), nil
+}
+
 func (s *Service) ExecuteVoiceCommand(ctx context.Context, edgeID, roomID string, audio []byte, source string) (*voicev1.ParsedVoiceCommand, error) {
 	if edgeID == "" {
 		return nil, fmt.Errorf("edge_id is required")
@@ -376,7 +434,16 @@ func (s *Service) ExecuteVoiceCommand(ctx context.Context, edgeID, roomID string
 	if command == nil {
 		return &voicev1.ParsedVoiceCommand{}, nil
 	}
-	if command.GetTargetState() != "" && (command.GetDeviceId() != "" || command.GetEntityId() != "") {
+	if command.GetScenarioId() != "" {
+		queueCommands := commandsForScenario(edgeID, command.GetScenarioId(), "voice:"+source)
+		if len(queueCommands) > 0 {
+			if err := s.store.EnqueueCommands(ctx, edgeID, queueCommands); err != nil {
+				return nil, err
+			}
+			command.CommandId = queueCommands[0].CommandID
+			command.ExecutionStatus = "queued"
+		}
+	} else if command.GetTargetState() != "" && (command.GetDeviceId() != "" || command.GetEntityId() != "") {
 		queueCommand := model.Command{
 			CommandID:   newID("cmd"),
 			EdgeID:      edgeID,
@@ -415,6 +482,18 @@ func commandsFromDecision(edgeID string, decision *scenariov1.Decision, defaultS
 	if decision == nil {
 		return nil
 	}
+	if ids := decision.GetMatchedScenarioIds(); len(ids) > 0 {
+		result := make([]model.Command, 0, len(ids))
+		for _, scenarioID := range ids {
+			if scenarioID == "" {
+				continue
+			}
+			result = append(result, commandsForScenario(edgeID, scenarioID, defaultSource)...)
+		}
+		if len(result) > 0 {
+			return result
+		}
+	}
 
 	result := make([]model.Command, 0)
 	for _, action := range decision.GetActions() {
@@ -438,6 +517,21 @@ func commandsFromDecision(edgeID string, decision *scenariov1.Decision, defaultS
 		})
 	}
 	return result
+}
+
+func commandsForScenario(edgeID, scenarioID, source string) []model.Command {
+	if edgeID == "" || scenarioID == "" {
+		return nil
+	}
+	return []model.Command{
+		{
+			CommandID:  newID("cmd"),
+			EdgeID:     edgeID,
+			ScenarioID: scenarioID,
+			Source:     source,
+			CreatedAt:  time.Now().UTC(),
+		},
+	}
 }
 
 func newID(prefix string) string {
