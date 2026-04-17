@@ -4,7 +4,7 @@ toolchain go1.24.4
 
 use (
 	./services/context-service
+	./services/notification-service
 	./services/platform-service
 	./services/vision-service
-	./services/notification-service
 )

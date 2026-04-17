@@ -1,10 +1,7 @@
 SERVICES := \
-	api-gateway \
-	edge-bridge-service \
-	device-service \
+	platform-service \
 	context-service \
-	scenario-service \
-	voice-service \
+	voice-recognition-service \
 	vision-service \
 	notification-service
 

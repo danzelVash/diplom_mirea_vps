@@ -37,6 +37,18 @@ import (
 	voicev1 "platform-service/pkg/pb/voice/v1"
 )
 
+func CORSMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		allowedOrigin := ""
+		w.Header().Set("Vary", "Origin")
+		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	cfg := config.LoadDefault()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -92,7 +104,7 @@ func main() {
 
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPAddr(),
-		Handler:           buildHTTPHandler(deviceSvc, scenarioSvc, edgeBridgeSvc),
+		Handler:           CORSMiddleware(buildHTTPHandler(deviceSvc, scenarioSvc, edgeBridgeSvc)),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
