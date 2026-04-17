@@ -67,12 +67,18 @@ func New(store Store, device DeviceClient, scenario ScenarioClient, voice VoiceC
 }
 
 type VoiceAudioReceipt struct {
-	Status     string    `json:"status"`
-	EdgeID     string    `json:"edge_id"`
-	RoomID     string    `json:"room_id,omitempty"`
-	Source     string    `json:"source"`
-	AudioBytes int       `json:"audio_bytes"`
-	ReceivedAt time.Time `json:"received_at"`
+	Status            string    `json:"status"`
+	EdgeID            string    `json:"edge_id"`
+	RoomID            string    `json:"room_id,omitempty"`
+	Source            string    `json:"source"`
+	AudioBytes        int       `json:"audio_bytes"`
+	ReceivedAt        time.Time `json:"received_at"`
+	RecognizedCommand string    `json:"recognized_command,omitempty"`
+	ScenarioID        string    `json:"scenario_id,omitempty"`
+	ScenarioName      string    `json:"scenario_name,omitempty"`
+	ExecutionStatus   string    `json:"execution_status,omitempty"`
+	CommandID         string    `json:"command_id,omitempty"`
+	QueuedCommands    int       `json:"queued_commands,omitempty"`
 }
 
 func (s *Service) RegisterEdge(ctx context.Context, req model.EdgeRegistration) (model.EdgeStatus, error) {
@@ -485,7 +491,7 @@ func (s *Service) ExecuteVoiceCommand(ctx context.Context, edgeID, roomID string
 	return command, nil
 }
 
-func (s *Service) AcceptVoiceCommandAudio(_ context.Context, edgeID, roomID string, audio []byte, source string) (VoiceAudioReceipt, error) {
+func (s *Service) AcceptVoiceCommandAudio(ctx context.Context, edgeID, roomID string, audio []byte, source string) (VoiceAudioReceipt, error) {
 	if edgeID == "" {
 		return VoiceAudioReceipt{}, fmt.Errorf("edge_id is required")
 	}
@@ -500,14 +506,34 @@ func (s *Service) AcceptVoiceCommandAudio(_ context.Context, edgeID, roomID stri
 	log.Printf("[edgebridge/voice-audio] received wakeword audio edge=%s room=%s source=%s bytes=%d at=%s",
 		edgeID, roomID, source, len(audio), receivedAt.Format(time.RFC3339))
 
-	return VoiceAudioReceipt{
+	command, err := s.ExecuteVoiceCommand(ctx, edgeID, roomID, audio, source)
+	if err != nil {
+		return VoiceAudioReceipt{}, err
+	}
+
+	receipt := VoiceAudioReceipt{
 		Status:     "received",
 		EdgeID:     edgeID,
 		RoomID:     roomID,
 		Source:     source,
 		AudioBytes: len(audio),
 		ReceivedAt: receivedAt,
-	}, nil
+	}
+	if command != nil {
+		receipt.RecognizedCommand = command.GetRecognizedCommand()
+		receipt.ScenarioID = command.GetScenarioId()
+		receipt.ScenarioName = command.GetScenarioName()
+		receipt.ExecutionStatus = command.GetExecutionStatus()
+		receipt.CommandID = command.GetCommandId()
+		if command.GetExecutionStatus() == "queued" {
+			receipt.Status = "queued"
+			receipt.QueuedCommands = 1
+		} else if command.GetExecutionStatus() != "" {
+			receipt.Status = command.GetExecutionStatus()
+		}
+	}
+
+	return receipt, nil
 }
 
 func (s *Service) GetEdgeStatus(ctx context.Context, edgeID string) (model.EdgeStatus, model.EventSnapshot, bool, error) {
