@@ -397,7 +397,7 @@ func (s *Service) ExecuteScenario(ctx context.Context, edgeID, scenarioID, sourc
 		return nil, 0, edgebridgestore.ErrNotFound
 	}
 
-	queuedCommands := commandsForScenario(edgeID, scenarioID, "scenario:"+source)
+	queuedCommands := commandsForScenarioActions(edgeID, scenario.GetActions(), "scenario:"+source)
 	if len(queuedCommands) == 0 {
 		return scenario, 0, nil
 	}
@@ -435,13 +435,26 @@ func (s *Service) ExecuteVoiceCommand(ctx context.Context, edgeID, roomID string
 		return &voicev1.ParsedVoiceCommand{}, nil
 	}
 	if command.GetScenarioId() != "" {
-		queueCommands := commandsForScenario(edgeID, command.GetScenarioId(), "voice:"+source)
-		if len(queueCommands) > 0 {
-			if err := s.store.EnqueueCommands(ctx, edgeID, queueCommands); err != nil {
-				return nil, err
+		scenarios, err := s.ListScenarios(ctx, edgeID)
+		if err != nil {
+			return nil, err
+		}
+		var matched *scenariov1.Scenario
+		for _, item := range scenarios {
+			if item.GetScenarioId() == command.GetScenarioId() {
+				matched = item
+				break
 			}
-			command.CommandId = queueCommands[0].CommandID
-			command.ExecutionStatus = "queued"
+		}
+		if matched != nil {
+			queueCommands := commandsForScenarioActions(edgeID, matched.GetActions(), "voice:"+source)
+			if len(queueCommands) > 0 {
+				if err := s.store.EnqueueCommands(ctx, edgeID, queueCommands); err != nil {
+					return nil, err
+				}
+				command.CommandId = queueCommands[0].CommandID
+				command.ExecutionStatus = "queued"
+			}
 		}
 	} else if command.GetTargetState() != "" && (command.GetDeviceId() != "" || command.GetEntityId() != "") {
 		queueCommand := model.Command{
@@ -532,6 +545,36 @@ func commandsForScenario(edgeID, scenarioID, source string) []model.Command {
 			CreatedAt:  time.Now().UTC(),
 		},
 	}
+}
+
+func commandsForScenarioActions(edgeID string, actions []*scenariov1.Action, source string) []model.Command {
+	if edgeID == "" || len(actions) == 0 {
+		return nil
+	}
+
+	commands := make([]model.Command, 0, len(actions))
+	for _, action := range actions {
+		if action == nil {
+			continue
+		}
+		if action.GetTargetState() == "" {
+			continue
+		}
+		if action.GetDeviceId() == "" && action.GetEntityId() == "" {
+			continue
+		}
+		commands = append(commands, model.Command{
+			CommandID:   newID("cmd"),
+			EdgeID:      edgeID,
+			ScenarioID:  "",
+			DeviceID:    action.GetDeviceId(),
+			EntityID:    action.GetEntityId(),
+			TargetState: action.GetTargetState(),
+			Source:      source,
+			CreatedAt:   time.Now().UTC(),
+		})
+	}
+	return commands
 }
 
 func newID(prefix string) string {
