@@ -4,7 +4,7 @@ services:
     hostname: platform-postgres
     restart: always
     environment:
-      POSTGRES_DB: "postgres"
+      POSTGRES_DB: "smarthome"
       POSTGRES_USER: "smarthome"
       POSTGRES_PASSWORD: "smarthome"
       POSTGRES_HOST_AUTH_METHOD: trust
@@ -13,7 +13,7 @@ services:
     volumes:
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "smarthome"]
+      test: ["CMD", "pg_isready", "-q", "-d", "smarthome", "-U", "smarthome"]
       interval: 2s
       timeout: 2s
       retries: 10
