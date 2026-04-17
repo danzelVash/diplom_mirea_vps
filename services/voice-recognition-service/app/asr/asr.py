@@ -11,14 +11,21 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 DEFAULT_ASR_MODEL = os.getenv("VOICE_RECOGNITION_ASR_MODEL", "artyomboyko/whisper-small-ru-v2")
+DEFAULT_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 @lru_cache(maxsize=1)
 def load_model_components():
-    logger.info("Loading ASR model: %s", DEFAULT_ASR_MODEL)
+    logger.info("Loading ASR model: %s on %s", DEFAULT_ASR_MODEL, DEFAULT_DEVICE)
     processor = WhisperProcessor.from_pretrained(DEFAULT_ASR_MODEL)
-    model = WhisperForConditionalGeneration.from_pretrained(DEFAULT_ASR_MODEL)
+    model = WhisperForConditionalGeneration.from_pretrained(
+        DEFAULT_ASR_MODEL,
+        low_cpu_mem_usage=False,
+        device_map=None,
+    )
     model.config.forced_decoder_ids = None
+    model.to(DEFAULT_DEVICE)
+    model.eval()
     return processor, model
 
 
@@ -49,6 +56,9 @@ def asr(audio_file_path: str) -> str:
         return_tensors="pt",
     ).input_features
 
-    predicted_ids = model.generate(input_features)
+    input_features = input_features.to(DEFAULT_DEVICE)
+
+    with torch.inference_mode():
+        predicted_ids = model.generate(input_features)
     transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
     return transcription[0].strip()
