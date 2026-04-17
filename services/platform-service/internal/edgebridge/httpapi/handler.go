@@ -32,6 +32,7 @@ func New(service *bridgeservice.Service) http.Handler {
 	mux.HandleFunc("GET /api/v1/edges/{id}/offline-scenarios", h.listOfflineScenarios)
 	mux.HandleFunc("GET /api/v1/edges/{id}/scenarios", h.listScenarios)
 	mux.HandleFunc("GET /api/v1/edges/{id}/voice-commands", h.listVoiceCommands)
+	mux.HandleFunc("POST /api/v1/edges/{id}/voice-audio", h.acceptVoiceAudio)
 	mux.HandleFunc("GET /api/v1/edges/{id}/status", h.edgeStatus)
 
 	return mux
@@ -239,6 +240,25 @@ func (h *Handler) listVoiceCommands(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	writeJSON(w, http.StatusOK, response)
+}
+
+func (h *Handler) acceptVoiceAudio(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		RoomID string `json:"room_id"`
+		Source string `json:"source"`
+		Audio  []byte `json:"audio"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+
+	receipt, err := h.service.AcceptVoiceCommandAudio(r.Context(), r.PathValue("id"), body.RoomID, body.Audio, body.Source)
+	if err != nil {
+		writeError(w, mapError(err), err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, receipt)
 }
 
 func (h *Handler) edgeStatus(w http.ResponseWriter, r *http.Request) {

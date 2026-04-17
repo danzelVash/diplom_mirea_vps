@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
 
@@ -63,6 +64,15 @@ func New(store Store, device DeviceClient, scenario ScenarioClient, voice VoiceC
 		voice:      voice,
 		retryAfter: retryAfter,
 	}
+}
+
+type VoiceAudioReceipt struct {
+	Status     string    `json:"status"`
+	EdgeID     string    `json:"edge_id"`
+	RoomID     string    `json:"room_id,omitempty"`
+	Source     string    `json:"source"`
+	AudioBytes int       `json:"audio_bytes"`
+	ReceivedAt time.Time `json:"received_at"`
 }
 
 func (s *Service) RegisterEdge(ctx context.Context, req model.EdgeRegistration) (model.EdgeStatus, error) {
@@ -473,6 +483,31 @@ func (s *Service) ExecuteVoiceCommand(ctx context.Context, edgeID, roomID string
 		command.ExecutionStatus = "queued"
 	}
 	return command, nil
+}
+
+func (s *Service) AcceptVoiceCommandAudio(_ context.Context, edgeID, roomID string, audio []byte, source string) (VoiceAudioReceipt, error) {
+	if edgeID == "" {
+		return VoiceAudioReceipt{}, fmt.Errorf("edge_id is required")
+	}
+	if len(audio) == 0 {
+		return VoiceAudioReceipt{}, fmt.Errorf("audio is required")
+	}
+	if source == "" {
+		source = "wakeword"
+	}
+
+	receivedAt := time.Now().UTC()
+	log.Printf("[edgebridge/voice-audio] received wakeword audio edge=%s room=%s source=%s bytes=%d at=%s",
+		edgeID, roomID, source, len(audio), receivedAt.Format(time.RFC3339))
+
+	return VoiceAudioReceipt{
+		Status:     "received",
+		EdgeID:     edgeID,
+		RoomID:     roomID,
+		Source:     source,
+		AudioBytes: len(audio),
+		ReceivedAt: receivedAt,
+	}, nil
 }
 
 func (s *Service) GetEdgeStatus(ctx context.Context, edgeID string) (model.EdgeStatus, model.EventSnapshot, bool, error) {
