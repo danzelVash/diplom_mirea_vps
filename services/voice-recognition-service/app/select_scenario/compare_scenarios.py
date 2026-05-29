@@ -3,6 +3,7 @@ import os
 import time
 from collections import OrderedDict
 from functools import lru_cache
+from pathlib import Path
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -12,7 +13,10 @@ from sentence_transformers.util import cos_sim
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-DEFAULT_EMBEDDING_MODEL = os.getenv("VOICE_RECOGNITION_EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+SERVICE_ROOT = Path(__file__).resolve().parents[2]
+MODELS_ROOT = SERVICE_ROOT / "models"
+DEFAULT_EMBEDDING_MODEL = MODELS_ROOT / "all-MiniLM-L6-v2"
+OFFLINE_MODE = True
 SCENARIO_EMBEDDINGS_TTL_SECONDS = 300
 SCENARIO_EMBEDDINGS_CACHE_SIZE = 256
 
@@ -20,7 +24,11 @@ SCENARIO_EMBEDDINGS_CACHE_SIZE = 256
 @lru_cache(maxsize=1)
 def load_embedding_model() -> SentenceTransformer:
     logger.info("Loading embedding model: %s", DEFAULT_EMBEDDING_MODEL)
-    return SentenceTransformer(DEFAULT_EMBEDDING_MODEL)
+    if not DEFAULT_EMBEDDING_MODEL.exists():
+        raise FileNotFoundError(
+            f"Offline embedding model directory not found: {DEFAULT_EMBEDDING_MODEL}"
+        )
+    return SentenceTransformer(str(DEFAULT_EMBEDDING_MODEL), local_files_only=OFFLINE_MODE)
 
 
 class ScenarioComparator:

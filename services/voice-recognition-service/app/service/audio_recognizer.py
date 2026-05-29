@@ -13,7 +13,7 @@ from app.select_scenario.compare_scenarios import ScenarioComparator, load_embed
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-SIMILARITY_THRESHOLD = float(os.getenv("VOICE_RECOGNITION_SIMILARITY_THRESHOLD", "0.3"))
+SIMILARITY_THRESHOLD = float(os.getenv("VOICE_RECOGNITION_SIMILARITY_THRESHOLD", "0.8"))
 
 
 @lru_cache(maxsize=1)

@@ -12,10 +12,12 @@ from transformers import WhisperForConditionalGeneration, WhisperProcessor
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-DEFAULT_ASR_MODEL = os.getenv("VOICE_RECOGNITION_ASR_MODEL", "artyomboyko/whisper-small-ru-v2")
-DEFAULT_FASTER_WHISPER_MODEL = "Systran/faster-whisper-tiny"
-# ASR_BACKEND = "transformers"
+SERVICE_ROOT = Path(__file__).resolve().parents[2]
+MODELS_ROOT = SERVICE_ROOT / "models"
+DEFAULT_ASR_MODEL = MODELS_ROOT / "whisper-small-ru-v2"
+DEFAULT_FASTER_WHISPER_MODEL = MODELS_ROOT / "faster-whisper-tiny"
 ASR_BACKEND = "faster_whisper"
+OFFLINE_MODE = True
 
 ASR_BACKEND_TRANSFORMERS = "transformers"
 ASR_BACKEND_FASTER_WHISPER = "faster_whisper"
@@ -30,12 +32,19 @@ SUPPORTED_AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".m4a"}
 @lru_cache(maxsize=1)
 def load_transformers_components():
     logger.info("Loading ASR model: %s on %s", DEFAULT_ASR_MODEL, DEFAULT_DEVICE)
-    processor = WhisperProcessor.from_pretrained(DEFAULT_ASR_MODEL)
+    if not DEFAULT_ASR_MODEL.exists():
+        raise FileNotFoundError(f"Offline ASR model directory not found: {DEFAULT_ASR_MODEL}")
+
+    processor = WhisperProcessor.from_pretrained(
+        str(DEFAULT_ASR_MODEL),
+        local_files_only=OFFLINE_MODE,
+    )
     model = WhisperForConditionalGeneration.from_pretrained(
-        DEFAULT_ASR_MODEL,
+        str(DEFAULT_ASR_MODEL),
         low_cpu_mem_usage=False,
         device_map=None,
         torch_dtype=DEFAULT_TORCH_DTYPE,
+        local_files_only=OFFLINE_MODE,
     )
     model.config.forced_decoder_ids = None
     model.to(DEFAULT_DEVICE)
@@ -62,8 +71,12 @@ def load_faster_whisper_model():
         DEFAULT_DEVICE,
         compute_type,
     )
+    if not DEFAULT_FASTER_WHISPER_MODEL.exists():
+        raise FileNotFoundError(
+            f"Offline faster-whisper model directory not found: {DEFAULT_FASTER_WHISPER_MODEL}"
+        )
     return WhisperModel(
-        DEFAULT_FASTER_WHISPER_MODEL,
+        str(DEFAULT_FASTER_WHISPER_MODEL),
         device=DEFAULT_DEVICE,
         compute_type=compute_type,
     )

@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def serve() -> None:
+    host = os.getenv("VOICE_RECOGNITION_GRPC_HOST", "0.0.0.0")
     port = os.getenv("VOICE_RECOGNITION_GRPC_PORT", "9010")
     warmup_models()
     server = grpc.server(
@@ -32,7 +33,7 @@ def serve() -> None:
     ].full_name
     reflection.enable_server_reflection((service_name, reflection.SERVICE_NAME), server)
 
-    bind_address = f"[::]:{port}"
+    bind_address = f"{host}:{port}"
     bound_port = server.add_insecure_port(bind_address)
     if bound_port == 0:
         raise RuntimeError(f"Failed to bind voice-recognition-service to {bind_address}")
